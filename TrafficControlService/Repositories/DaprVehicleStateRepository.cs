@@ -1,7 +1,7 @@
 ﻿using Dapr.Client;
 using TrafficControlService.Models;
 
-namespace TrafficControlService.Repositories {
+namespace TrafficControlService.Repositories;
     public class DaprVehicleStateRepository : IVehicleStateRepository {
         private const string DAPR_STORE_NAME = "statestore";
         private readonly DaprClient client;
@@ -9,15 +9,14 @@ namespace TrafficControlService.Repositories {
         public DaprVehicleStateRepository(DaprClient daprClient) {
             this.client = daprClient;
         }
-        public async Task<VehicleState?> GetVehicleStateAsync(string licensePlate) {
+        public async Task<VehicleState?> GetVehicleStateAsync(string licenseNumber) {
             var stateEntry = await client.GetStateEntryAsync<VehicleState>(
-                DAPR_STORE_NAME, licensePlate);
+                DAPR_STORE_NAME, licenseNumber);
             return stateEntry == null ? null : stateEntry.Value;
         }
 
         public async Task SaveVehicleStateAsync(VehicleState vehicleState) {
             await client.SaveStateAsync<VehicleState>(
-                DAPR_STORE_NAME, vehicleState.LicensePlate, vehicleState);
+                DAPR_STORE_NAME, vehicleState.LicenseNumber, vehicleState);
         }
     }
-}

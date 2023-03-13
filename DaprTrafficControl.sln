@@ -3,7 +3,43 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33417.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrafficControlService", "TrafficControlService\TrafficControlService.csproj", "{35A20528-1E58-4CDE-9CE7-65D1D6F92900}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "components", "components", "{D5BEF3D3-3BA4-4C3D-B231-50AA66154E85}"
+	ProjectSection(SolutionItems) = preProject
+		dapr\config\config.yaml = dapr\config\config.yaml
+		dapr\components\email.yaml = dapr\components\email.yaml
+		dapr\components\entrycam.yaml = dapr\components\entrycam.yaml
+		dapr\components\exitcam.yaml = dapr\components\exitcam.yaml
+		dapr\components\pubsub.yaml = dapr\components\pubsub.yaml
+		dapr\config\ratelimit-config.yaml = dapr\config\ratelimit-config.yaml
+		dapr\components\secrets-file.yaml = dapr\components\secrets-file.yaml
+		dapr\components\secrets.json = dapr\components\secrets.json
+		dapr\components\statestore.yaml = dapr\components\statestore.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mosquitto", "mosquitto", "{0A4ED591-9D44-48BC-830A-DF624ADE4CB5}"
+	ProjectSection(SolutionItems) = preProject
+		mosquitto\Dockerfile = mosquitto\Dockerfile
+		mosquitto\mosquitto.conf = mosquitto\mosquitto.conf
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrafficSimulationServiceConsole", "TrafficSimulationServiceConsole\TrafficSimulationServiceConsole.csproj", "{D95B1233-33BF-4E72-BBE8-2CAF91C0EBE1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrafficControlService", "TrafficControlService\TrafficControlService.csproj", "{287E3C41-1F88-4A24-B6D6-DA932DE182A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F9BFF054-0760-4E85-B5EE-C92BDB6CEF8F}"
+	ProjectSection(SolutionItems) = preProject
+		tye.yaml = tye.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{A6F72530-6360-4E6B-8722-387BBCEAC227}"
+	ProjectSection(SolutionItems) = preProject
+		dapr\config\config.yaml = dapr\config\config.yaml
+		dapr\config\ratelimit-config.yaml = dapr\config\ratelimit-config.yaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FineCollectionService", "FineCollectionService\FineCollectionService.csproj", "{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VehicleRegistrationService", "VehicleRegistrationService\VehicleRegistrationService.csproj", "{8622D714-7213-4955-9C11-5BDFA11EFB47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +47,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{35A20528-1E58-4CDE-9CE7-65D1D6F92900}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{35A20528-1E58-4CDE-9CE7-65D1D6F92900}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{35A20528-1E58-4CDE-9CE7-65D1D6F92900}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{35A20528-1E58-4CDE-9CE7-65D1D6F92900}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D95B1233-33BF-4E72-BBE8-2CAF91C0EBE1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D95B1233-33BF-4E72-BBE8-2CAF91C0EBE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D95B1233-33BF-4E72-BBE8-2CAF91C0EBE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D95B1233-33BF-4E72-BBE8-2CAF91C0EBE1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{287E3C41-1F88-4A24-B6D6-DA932DE182A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{287E3C41-1F88-4A24-B6D6-DA932DE182A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{287E3C41-1F88-4A24-B6D6-DA932DE182A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{287E3C41-1F88-4A24-B6D6-DA932DE182A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

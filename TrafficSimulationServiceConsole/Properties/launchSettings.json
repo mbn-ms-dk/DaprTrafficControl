@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TrafficSimulationServiceConsole": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
