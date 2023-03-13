@@ -1,0 +1,55 @@
+name: dtc
+extensions:
+  - name: dapr
+    # log-level configures the log level of the dapr sidecar
+    log-level: info
+    # config allows you to pass additional configuration into the dapr sidecar
+    # config will be interpreted as a named k8s resource when deployed, and will be interpreted as
+    # a file on disk when running locally at `./components/myconfig.yaml`
+    config: "config"
+
+    # components-path configures the components path of the dapr sidecar
+    components-path: "./components/"
+
+    # If not using the default Dapr placement service or otherwise using a placement service on a nonstandard port,
+    # you can configure the Dapr sidecar to use an explicit port.
+    # placement-port: 6050
+services:
+  - name: dtc-mosquitto
+    dockerFile: mosquitto/Dockerfile
+    bindings:
+    -  name: "std" 
+       port: 1883 #containerPort: 1883
+    -  name: "websockets"
+       port: 9001
+  - name: dtc-rabbitmq
+    image: rabbitmq:3-management-alpine
+    bindings: 
+      - name: "std"
+        port: 5672
+      - name: "web"
+        port: 15672
+  - name: dtc-maildev
+    image: maildev/maildev:2.0.5
+    bindings:
+      - name: "transport"
+        containerPort: 1025
+        port: 4025
+      - name: "web"
+        containerPort: 1080
+        port: 4000
+  - name: dtc-simulation
+    project: TrafficSimulationServiceConsole/TrafficSimulationServiceConsole.csproj
+    env:
+      - name: MQTT_HOST
+        value: "localhost"
+  - name: trafficcontrolservice
+    project: TrafficcontrolService/TrafficcontrolService.csproj
+    env:
+      - name: USE_ACTORS
+        value: "false"     
+  - name: vehicleregistrationservice
+    project: VehicleRegistrationService/VehicleRegistrationService.csproj
+  - name: finecollectionservice
+    project: FineCollectionService/FineCollectionService.csproj      
+  
