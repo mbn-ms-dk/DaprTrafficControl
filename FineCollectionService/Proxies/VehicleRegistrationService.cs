@@ -9,6 +9,7 @@ public class VehicleRegistrationService {
     }
 
     public async Task<VehicleInfo> GetVehicleInfoAsync(string licenseNumber) {
-        return await httpClient.GetFromJsonAsync<VehicleInfo>($"vehicleinfo/{licenseNumber}");
+        Console.WriteLine($"VH REG {httpClient.BaseAddress?.AbsoluteUri}");
+        return await httpClient.GetFromJsonAsync<VehicleInfo>($"vehicleinfo?licensenumber={licenseNumber}");
     }
 }

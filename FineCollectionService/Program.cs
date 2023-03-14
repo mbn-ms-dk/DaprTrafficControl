@@ -10,15 +10,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<IFineCalculator, HardCodedFineCalculator>();
 
-var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3601";
-var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60001";
-builder.Services.AddDaprClient(builder => builder
-    .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
-    .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
+// var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3601";
+// var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60001";
+// builder.Services.AddDaprClient(builder => builder
+//     .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
+//     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
+
+builder.Services.AddDaprClient(builder => builder.Build());
 
 builder.Services.AddSingleton<VehicleRegistrationService>(_ =>
     new VehicleRegistrationService(DaprClient.CreateInvokeHttpClient(
-        "vehicleregistrationservice", $"http://localhost:{daprHttpPort}")));
+        "vehicleregistrationservice"))); //, $"http://localhost:{3602}")));
 
 
 var app = builder.Build();
@@ -26,8 +28,11 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseCloudEvents();
 
-
-app.MapPost("collectfine", async (string licenseNumber,IFineCalculator calc, VehicleRegistrationService registration, SpeedingViolation speedingViolation, DaprClient client) => {
+// `.WithTopic(...)` tells Dapr to subscribe to the given topic, and call this
+// when a value is published.  This still works when posting directly to the
+// endpoint!
+app.MapPost("collectfine", async (SpeedingViolation speedingViolation, IFineCalculator calc, VehicleRegistrationService registration, DaprClient client) => {
+    Console.WriteLine($"REC {speedingViolation.VehicleId}");
     decimal fine = calc.CalculateFine(speedingViolation.ViolationInKmh);
     //get owner information (Dapr service invocation)
     var vehicleInfo = await registration.GetVehicleInfoAsync(speedingViolation.VehicleId);
@@ -50,7 +55,7 @@ app.MapPost("collectfine", async (string licenseNumber,IFineCalculator calc, Veh
     await client.InvokeBindingAsync("sendmail", "create", body, metadata);
 
     return Results.Ok();
-});
+}).WithTopic("pubsub", "speedingviolations");
 
 
 app.Run();

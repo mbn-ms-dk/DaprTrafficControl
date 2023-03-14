@@ -19,11 +19,13 @@ builder.Services.AddActors(options => {
     options.Actors.RegisterActor<VehicleActor>();
 });
 
-var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3600";
-var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60002";
-builder.Services.AddDaprClient(builder => builder
-    .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
-    .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
+// var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3600";
+// var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60002";
+// builder.Services.AddDaprClient(builder => builder
+//     .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
+//     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
+
+builder.Services.AddDaprClient(builder => builder.Build());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -80,6 +82,7 @@ if (useActors.ToLower().Equals("false")) {
                 };
 
                 // publish speedingviolation (Dapr publish / subscribe)
+                Console.WriteLine($"PUBLISHING {speedingViolation.VehicleId}");
                 await client.PublishEventAsync("pubsub", "speedingviolations", speedingViolation);
             }
 
