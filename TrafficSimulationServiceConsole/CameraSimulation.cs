@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.Logging;
 using TrafficSimulationServiceConsole.Events;
 using TrafficSimulationServiceConsole.Services;
 
 namespace TrafficSimulationServiceConsole;
-    public  class CameraSimulation {
+public  class CameraSimulation {
     private readonly ITrafficControlService trafficControlService;
     private Random rnd;
     private int camNumber;
@@ -17,14 +12,18 @@ namespace TrafficSimulationServiceConsole;
     private int minExitDelayInS = 4;
     private int maxExitDelayInS = 10;
 
-    public CameraSimulation(int cameraNumber, ITrafficControlService trafficControlService) {
+    private readonly ILogger logger;
+
+    public CameraSimulation(int cameraNumber, ITrafficControlService trafficControlService, ILogger logger) {
         this.trafficControlService = trafficControlService;
         camNumber = cameraNumber;
         rnd = new Random();
+        this.logger = logger;
     }
 
     public  Task start() {
         Console.WriteLine($"Start camera {camNumber} simulation");
+        logger.LogInformation($"Start camera {camNumber} simulation");
         while ( true ) {
             try {
                 var entryDelay = TimeSpan.FromMilliseconds(rnd.Next(minEntryDelayInMS, maxEntryDelayInMS) + rnd.NextDouble());
@@ -40,6 +39,7 @@ namespace TrafficSimulationServiceConsole;
                     };
                     await trafficControlService.SendVehicleEntryAsync(vehicleRegistered);
                     Console.WriteLine($"Simulated ENTRY of vehicle with license-number {vehicleRegistered.LicenseNumber} in lane {vehicleRegistered.Lane}");
+                    logger.LogInformation($"Simulated ENTRY of vehicle with license-number {vehicleRegistered.LicenseNumber} in lane {vehicleRegistered.Lane}");
 
 
                     // simulate exit
@@ -49,10 +49,12 @@ namespace TrafficSimulationServiceConsole;
                     vehicleRegistered.Lane = rnd.Next(1, 4);
                     await trafficControlService.SendVehicleExitAsync(vehicleRegistered);
                     Console.WriteLine($"Simulated EXIT of vehicle with license-number {vehicleRegistered.LicenseNumber} in lane {vehicleRegistered.Lane}");
+                    logger.LogInformation($"Simulated EXIT of vehicle with license-number {vehicleRegistered.LicenseNumber} in lane {vehicleRegistered.Lane}");
                 }).Wait();
             }
             catch (Exception ex) {
                 Console.WriteLine($"Camera {camNumber} error: {ex.Message}");
+                logger.LogError(ex, $"Camera {camNumber} error: {ex.Message}");
             }
         }
     }

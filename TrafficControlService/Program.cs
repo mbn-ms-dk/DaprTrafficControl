@@ -26,6 +26,13 @@ builder.Services.AddActors(options => {
 //     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
 
 builder.Services.AddDaprClient(builder => builder.Build());
+
+builder.Services.AddApplicationInsightsTelemetry(options => {
+     options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING") ;
+});
+// Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
+builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -122,4 +129,4 @@ else {
     });
 }
 
-app.Run();
+app.Run(); //"http://localhost:6000");

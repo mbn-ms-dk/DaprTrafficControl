@@ -20,12 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		tye.yaml = tye.yaml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{A6F72530-6360-4E6B-8722-387BBCEAC227}"
-	ProjectSection(SolutionItems) = preProject
-		dapr\config\config.yaml = dapr\config\config.yaml
-		dapr\config\ratelimit-config.yaml = dapr\config\ratelimit-config.yaml
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FineCollectionService", "FineCollectionService\FineCollectionService.csproj", "{FC57AAAA-52AD-4B87-9C01-5C9EF1142553}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VehicleRegistrationService", "VehicleRegistrationService\VehicleRegistrationService.csproj", "{8622D714-7213-4955-9C11-5BDFA11EFB47}"

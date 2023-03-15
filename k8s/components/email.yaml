@@ -8,20 +8,18 @@ spec:
   version: v1
   metadata:
   - name: host
-    value: localhost
+    value: mailserver
   - name: port
     value: 4025
   - name: user
     secretKeyRef:
-      name: smtp.user
+      name: trafficcontrol-secrets
       key: smtp.user
   - name: password
     secretKeyRef:
-      name: smtp.password
+      name: trafficcontrol-secrets
       key: smtp.password
   - name: skipTLSVerify
     value: true
-auth:
-  secretStore: trafficcontrol-secrets
 scopes:
   - finecollectionservice

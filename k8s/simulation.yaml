@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simulation
+  namespace: dapr-trafficcontrol
+  labels:
+    app: simulation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simulation
+  template:
+    metadata:
+      labels:
+        app: simulation
+    spec:
+      containers:
+      - name: simulation
+        image: acrdtctye.azurecr.io/simulation:v4
+        env:
+          - name: MQTT_HOST
+            value: mosquitto.dapr-trafficcontrol.svc.cluster.local
+          - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: app-env-secret  # Matches your secret name
+                key: appinsights-connection-string  # matches the key of the secret data  

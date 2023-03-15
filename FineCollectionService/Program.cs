@@ -3,7 +3,6 @@ using FineCollectionService.Models;
 using FineCollectionService.Proxies;
 using FineCollectionService.Services;
 using FineCollectionService.Utils;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,11 +21,18 @@ builder.Services.AddSingleton<VehicleRegistrationService>(_ =>
     new VehicleRegistrationService(DaprClient.CreateInvokeHttpClient(
         "vehicleregistrationservice"))); //, $"http://localhost:{3602}")));
 
+builder.Services.AddApplicationInsightsTelemetry(options => {
+     options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+});
+// Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
+builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseCloudEvents();
+
+
 
 // `.WithTopic(...)` tells Dapr to subscribe to the given topic, and call this
 // when a value is published.  This still works when posting directly to the
@@ -48,7 +54,7 @@ app.MapPost("collectfine", async (SpeedingViolation speedingViolation, IFineCalc
     // send fine by email (Dapr output binding)
     var body = EmailUtils.CreateEmailBody(speedingViolation, vehicleInfo, fineString);
     var metadata = new Dictionary<string, string> {
-        ["emailFrom"] = "noreply@cfca.gov",
+        ["emailFrom"] = "noreply@bigbrother.gov",
         ["emailTo"] = vehicleInfo.OwnerEmail,
         ["subject"] = $"Speeding violation on the {speedingViolation.RoadId}"
     };
@@ -58,5 +64,5 @@ app.MapPost("collectfine", async (SpeedingViolation speedingViolation, IFineCalc
 }).WithTopic("pubsub", "speedingviolations");
 
 
-app.Run();
+app.Run(); //"http://localhost:6001");
 

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trafficcontrolservice
+  namespace: dapr-trafficcontrol
+  labels:
+    app: trafficcontrolservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trafficcontrolservice
+  template:
+    metadata:
+      labels:
+        app: trafficcontrolservice
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "trafficcontrolservice"
+        dapr.io/app-port: "6000"
+        dapr.io/config: "dapr-config"
+    spec:
+      containers:
+      - name: trafficcontrolservice
+        image: acrdtctye.azurecr.io/trafficcontrolservice:v5
+        env:
+          - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: app-env-secret  # Matches your secret name
+                key: appinsights-connection-string  # matches the key of the secret data
+        ports:
+          - containerPort: 6000

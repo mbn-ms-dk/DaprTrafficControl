@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finecollectionservice
+  namespace: dapr-trafficcontrol
+  labels:
+    app: finecollectionservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: finecollectionservice
+  template:
+    metadata:
+      labels:
+        app: finecollectionservice
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "finecollectionservice"
+        dapr.io/app-port: "6001"
+        dapr.io/config: "dapr-config"
+    spec:
+      containers:
+      - name: finecollectionservice
+        image: acrdtctye.azurecr.io/finecollectionservice:v6
+        env:
+          - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+            valueFrom:
+              secretKeyRef:
+                name: app-env-secret  # Matches your secret name
+                key: appinsights-connection-string  # matches the key of the secret data
+        ports:
+          - containerPort: 6001

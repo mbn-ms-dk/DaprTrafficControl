@@ -12,6 +12,13 @@ builder.Services.AddScoped<IVehicleInfoRepository, InMemoryVehicleInfoRepository
 //     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
 
 builder.Services.AddDaprClient(builder => builder.Build());
+
+builder.Services.AddApplicationInsightsTelemetry(options => {
+     options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+});
+// Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
+builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,6 +30,6 @@ app.MapGet("vehicleinfo", (string licenseNumber, IVehicleInfoRepository repo) =>
     return Results.Ok(info);
 });
 
-app.Run();
+app.Run("http://localhost:6002");
 
 

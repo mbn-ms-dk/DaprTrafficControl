@@ -128,7 +128,7 @@ public class EmailUtils {
 									
 						<p>
 						Yours sincerely,<br/>
-						The Central Fine Collection Agency
+						The secret Big Brother Fine Collection Agency
 						</p>
                     </body>
                 </html>
