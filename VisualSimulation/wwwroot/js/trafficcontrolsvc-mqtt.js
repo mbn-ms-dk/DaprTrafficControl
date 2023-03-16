@@ -1,7 +1,6 @@
 import { Utils } from "./utils.js";
 
 export class MqttTrafficControlService {
-
     constructor(host, port) {
         this.client = new Paho.MQTT.Client(host, port, 'simulation-ui');
         this.client.connect();

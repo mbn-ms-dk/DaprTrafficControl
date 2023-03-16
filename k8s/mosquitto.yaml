@@ -28,7 +28,6 @@ spec:
               protocol: TCP
             - name: ws
               containerPort: 9001
-              protocol: TCP  
       restartPolicy: Always
 
 ---
@@ -41,6 +40,7 @@ metadata:
   name: mosquitto
   namespace: dtc
 spec:
+  type: LoadBalancer
   ports:
   - name: "mqtt"
     port: 1883

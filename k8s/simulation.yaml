@@ -20,7 +20,7 @@ spec:
         image: acrdtctye.azurecr.io/simulation:v4
         env:
           - name: MQTT_HOST
-            value: mosquitto.dapr-trafficcontrol.svc.cluster.local
+            value: mosquitto.dtc.svc.cluster.local
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:
               secretKeyRef:

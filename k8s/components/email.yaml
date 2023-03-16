@@ -10,7 +10,7 @@ spec:
   - name: host
     value: mailserver
   - name: port
-    value: 4025
+    value: 25
   - name: user
     secretKeyRef:
       name: trafficcontrol-secrets

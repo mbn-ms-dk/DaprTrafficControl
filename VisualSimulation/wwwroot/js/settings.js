@@ -4,7 +4,7 @@ import { HttpTrafficControlService } from './trafficcontrolsvc-http.js';
 
 export const Settings =
 {
-    trafficControlService: new MqttTrafficControlService('127.0.0.1', 9001),
+    trafficControlService: new MqttTrafficControlService('localhost', 9001),
     //trafficControlService: new HttpTrafficControlService('http://127.0.0.1:5000'),
     laneCount: 5,
     carCount: 15,
