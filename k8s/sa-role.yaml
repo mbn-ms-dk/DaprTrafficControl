@@ -16,7 +16,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: dapr-trafficcontrol
+  namespace: dtc
 roleRef:
   kind: ClusterRole
   name: appinsights-k8s-property-reader

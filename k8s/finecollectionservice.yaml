@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: finecollectionservice
-  namespace: dapr-trafficcontrol
+  namespace: dtc
   labels:
     app: finecollectionservice
 spec:

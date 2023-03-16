@@ -2,7 +2,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
   name: entrycam
-  namespace: dapr-trafficcontrol
+  namespace: dtc
 spec:
   type: bindings.mqtt
   version: v1

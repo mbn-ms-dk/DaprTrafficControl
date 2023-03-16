@@ -2,7 +2,7 @@ apiVersion: dapr.io/v1alpha1
 kind: Configuration
 metadata:
   name: daprConfig
-  namespace: dapr-trafficcontrol
+  namespace: dtc
 spec:
   tracing:
     samplingRate: "1"

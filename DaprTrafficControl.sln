@@ -43,6 +43,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{73E394
 		dapr\config\ratelimit-config.yaml = dapr\config\ratelimit-config.yaml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VisualSimulation", "VisualSimulation\VisualSimulation.csproj", "{A788D2DB-AB4B-4DA2-BA1C-6FDC886DFB8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +67,10 @@ Global
 		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8622D714-7213-4955-9C11-5BDFA11EFB47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A788D2DB-AB4B-4DA2-BA1C-6FDC886DFB8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A788D2DB-AB4B-4DA2-BA1C-6FDC886DFB8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A788D2DB-AB4B-4DA2-BA1C-6FDC886DFB8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A788D2DB-AB4B-4DA2-BA1C-6FDC886DFB8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

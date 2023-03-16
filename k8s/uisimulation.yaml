@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: uisim
+    version: v1
+  name: uisim
+  namespace: dtc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: uisim
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: uisim
+    spec:
+      containers:
+        - name: uisim
+          image: acrdtctye.azurecr.io/simulationui:v2
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5123
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: uisim
+  name: uisim
+  namespace: dtc
+spec:
+  type: LoadBalancer
+  ports:
+  - name: "web"
+    port: 5123
+    targetPort: 5123  
+  selector:
+    app: uisim

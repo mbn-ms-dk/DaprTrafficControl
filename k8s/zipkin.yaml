@@ -2,7 +2,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: zipkin
-  namespace: dapr-trafficcontrol
+  namespace: dtc
   labels:
     service: zipkin
 spec:
@@ -30,15 +30,14 @@ kind: Service
 apiVersion: v1
 metadata:
   name: zipkin
-  namespace: dapr-trafficcontrol
+  namespace: dtc
   labels:
     service: zipkin
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
     - port: 9411
       targetPort: 9411
-      nodePort: 32411
       protocol: TCP
       name: zipkin
   selector:

@@ -5,7 +5,7 @@ metadata:
     app: mosquitto
     version: v1
   name: mosquitto
-  namespace: dapr-trafficcontrol
+  namespace: dtc
 spec:
   replicas: 1
   selector:
@@ -23,7 +23,12 @@ spec:
           image: acrdtctye.azurecr.io/mosquitto:v1
           imagePullPolicy: Never
           ports:
-          - containerPort: 1883
+            - name: mqtt
+              containerPort: 1883
+              protocol: TCP
+            - name: ws
+              containerPort: 9001
+              protocol: TCP  
       restartPolicy: Always
 
 ---
@@ -34,11 +39,14 @@ metadata:
   labels:
     app: mosquitto
   name: mosquitto
-  namespace: dapr-trafficcontrol
+  namespace: dtc
 spec:
   ports:
   - name: "mqtt"
     port: 1883
     targetPort: 1883
+  - name: "ws"
+    port: 9001
+    targetPort: 9001  
   selector:
     app: mosquitto
