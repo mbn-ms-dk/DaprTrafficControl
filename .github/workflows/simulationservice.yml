@@ -1,0 +1,16 @@
+name: Build, tag and deploy simulation service
+
+on:
+  # Triggers the workflow on pull request events but only for the main branch
+  pull_request:
+    branches: [main]
+    types: [closed]
+    paths:
+      - "TrafficSimulationServiceConsole/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3          

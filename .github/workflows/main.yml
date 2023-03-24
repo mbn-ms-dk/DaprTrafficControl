@@ -1,0 +1,66 @@
+name: Build, tag and deploy base services and dapr components
+
+on:
+  # Triggers the workflow on pull request events but only for the main branch
+  # pull_request:
+  #   branches: [main]
+  #   types: [closed]
+    push:
+      # paths:
+      #   - "azure-vote/**"
+      
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+      - name: Build-push mosquitto-->ACR
+        uses: Azure/acr-build@v1
+        with:
+          service_principal: ${{ secrets.SERVICE_PRINCIPAL}}
+          service_principal_password: ${{ secrets.SERVICE_PRINCIPAL_PASSWORD }}
+          tenant: ${{ secrets.TENANT }}
+          registry: ${{ secrets.REGISTRY }}
+          repository: ${{ secrets.REPOSITORY }}
+          image: mosquitto
+          # dockerfile: TrafficSimulationServiceConsole/Dockerfile
+          folder: mosquitto
+          branch: main
+          tag: ${{ github.sha }}
+      - name: Azure login
+        id: login
+        uses: Azure/login@v1.4.6
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS}}
+      - name: Set AKS context
+        id: set-context
+        uses: Azure/aks-set-context@v3
+        with:
+          resource-group: '${{ secrets.RESOURCE_GROUP }}' 
+          cluster-name: '${{ secrets.CLUSTER_NAME }}'
+      - name: Setup kubectl
+        id: install-kubectl
+        uses: Azure/setup-kubectl@v3
+      - name: Deploy NS to AKS
+        id: deploy-ns-aks
+        uses: Azure/k8s-deploy@v4
+        with:
+          manifests: |
+             k8s/services/namespace.yaml
+      - name: Deploy dapr components to AKS
+        id: deploy-dapr-aks
+        uses: Azure/k8s-deploy@v4
+        with:
+          namespace: 'dtc'
+          manifests: |
+            k8s/components/
+      - name: Deploy base services to AKS
+        id: deploy-base-services-aks
+        uses: Azure/k8s-deploy@v4
+        with:
+            namespace: 'dtc'
+            manifests: |
+              k8s/services/
+            images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/mosquitto:${{ github.sha }}'
+            pull-images: false    

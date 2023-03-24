@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: finecollectionservice
-        image: acrdtctye.azurecr.io/finecollectionservice:v6
+        image: acrdtc1231.azurecr.io/finecollectionservice:v6
         env:
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:

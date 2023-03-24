@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: uisim
-          image: acrdtctye.azurecr.io/simulationui:v11
+          image: acrdtc1231.azurecr.io/simulationui:v11
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 5123
