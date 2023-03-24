@@ -1,4 +1,4 @@
-name: build_tag_deploy_aks
+name: build_tag_deploy_base_aks
 
 on:
   # Triggers the workflow on pull request events but only for the main branch
@@ -6,6 +6,8 @@ on:
   #   branches: [main]
   #   types: [closed]
     push:
+      # paths:
+      #   - "azure-vote/**"
       
 jobs:
   build:
@@ -13,7 +15,7 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
-      - name: Build-push Simulation Service-->ACR
+      - name: Build-push mosquitto-->ACR
         uses: Azure/acr-build@v1
         with:
           service_principal: ${{ secrets.SERVICE_PRINCIPAL}}
@@ -21,8 +23,9 @@ jobs:
           tenant: ${{ secrets.TENANT }}
           registry: ${{ secrets.REGISTRY }}
           repository: ${{ secrets.REPOSITORY }}
-          image: simulation
-          dockerfile: TrafficSimulationServiceConsole/Dockerfile
+          image: mosquitto
+          # dockerfile: TrafficSimulationServiceConsole/Dockerfile
+          folder: mosquitto
           branch: main
           tag: ${{ github.sha }}
       - name: Azure login
@@ -52,5 +55,12 @@ jobs:
           namespace: 'dtc'
           manifests: |
             k8s/components/
-          # images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/azure-vote-front:${{ github.sha }}'
-          # pull-images: false    
+      - name: Deploy base services to AKS
+        id: deploy-base-services-aks
+        uses: Azure/k8s-deploy@v4
+        with:
+            namespace: 'dtc'
+            manifests: |
+              k8s/services/
+            images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/mosquitto:${{ github.sha }}'
+            pull-images: false    

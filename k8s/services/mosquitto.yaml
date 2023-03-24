@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: mosquitto
-          image: acrdtctye.azurecr.io/mosquitto:v1
+          image: acrdtc1231.azurecr.io/dtc/mosquitto:v1
           imagePullPolicy: Never
           ports:
             - name: mqtt
