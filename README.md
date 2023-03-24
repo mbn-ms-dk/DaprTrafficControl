@@ -18,10 +18,10 @@ az login
 ```
 2. Set variables
 ```shell
-$rg="<name of resource group>"
-$aks="<name of aks cluster>"
-$loc="westeurope"
-$acr="<name of acr>"
+rg="rg-dtc"
+aks="dtcaks"
+loc="northeurope"
+acr="acrdtc1231"
 ```
 3. Create resource group
 ```shell
@@ -85,21 +85,16 @@ tye run --dashboard
 Last argument will open the tye dashboard.
 
 ## Deploy to Azure
-`tye deploy´ will not install the additional services so you need to do the following:
-Navigate to the k8s folder.
-update the tye_azure.yaml file with the name of your ACR
-```yaml
-registry: <registry_name>
-```
+add text
 
 ### Deploy services needed
 Build Mosquitto image and push to ACR
 ```shell
-docker build -t dapr-trafficcontrol/mosquitto:1.0 ./mosquitto
+docker build -t dtc/mosquitto:1.0 ./mosquitto
 ```
 Tag image
 ```shell
-docker tag dapr-trafficcontrol/mosquitto:1.0 <acrname>.azurecr.io/mosquitto:v1
+docker tag dtc/mosquitto:1.0 <acrname>.azurecr.io/mosquitto:v1
 ```
 
 Login to ACR
@@ -111,7 +106,7 @@ push image
 docker push <acrname>.azurecr.io/mosquitto:v1
 ```
 
-
+From the k8s folder run:
 ```shell
 kubectl apply `
     -f namespace.yaml `
@@ -123,7 +118,28 @@ kubectl apply `
     -f maildev.yaml 
 ```
 
-From the k8s folder run
+Deploy using github actions
+[https://learn.microsoft.com/en-us/azure/aks/kubernetes-action]
+1. Create connection between Github and Azure
 ```shell
-tye deploy --interactive
+az ad sp create-for-rbac \
+    --name "ghActiondtc" \
+    --scope /subscriptions/edccd614-120e-4738-9be5-e63d2c6b7b10/resourceGroups/$rg \
+    --role Contributor \
+    --sdk-auth
 ```
+Save the output as follows:
+
+| Secret name | Secret value |
+| :---------- | :----------- |
+| AZURE_CREDENTIALS | The entire JSON output from the az ad sp create-for-rbac command |
+| service_principal | The value of *clientId* |
+| service_principal_password | The value of *clientSecret* |
+| subscription | The value of *<*subscriptionId* |
+| tenant | The value of *tenantId* |
+| registry | The name of your registry |
+| repository | Name of your repository |
+| resource_group | The name of your resource group |
+| cluster_name | The name of your cluster |
+
+
