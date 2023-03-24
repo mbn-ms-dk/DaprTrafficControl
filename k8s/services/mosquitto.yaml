@@ -21,7 +21,7 @@ spec:
       containers:
         - name: mosquitto
           image: acrdtc1231.azurecr.io/dtc/mosquitto:v1
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - name: mqtt
               containerPort: 1883
