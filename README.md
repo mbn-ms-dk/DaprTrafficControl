@@ -1,5 +1,6 @@
 # DaprTrafficControl
 
+This projrect is based on [https://github.com/EdwinVW/dapr-traffic-control]
 This project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
 
 ## Prerequisites
@@ -122,6 +123,7 @@ Deploy using github actions
 [https://learn.microsoft.com/en-us/azure/aks/kubernetes-action]
 1. Create connection between Github and Azure
 ```shell
+<<<<<<< HEAD
 az ad sp create-for-rbac \
     --name "ghActiondtc" \
     --scope /subscriptions/edccd614-120e-4738-9be5-e63d2c6b7b10/resourceGroups/$rg \
@@ -143,3 +145,7 @@ Save the output as follows:
 | cluster_name | The name of your cluster |
 
 
+=======
+tye deploy --interactive
+```
+>>>>>>> 7f9b5fc6f766ac73d2c0b963d36083cd1b3d2850
