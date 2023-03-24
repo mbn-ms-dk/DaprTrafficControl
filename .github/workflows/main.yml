@@ -49,8 +49,8 @@ jobs:
         id: deploy-dapr-aks
         uses: Azure/k8s-deploy@v4
         with:
-            namespace: 'dtc'
+          namespace: 'dtc'
           manifests: |
-               k8s/components/
-            # images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/azure-vote-front:${{ github.sha }}'
-            # pull-images: false    
+            k8s/components/
+          # images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/azure-vote-front:${{ github.sha }}'
+          # pull-images: false    
