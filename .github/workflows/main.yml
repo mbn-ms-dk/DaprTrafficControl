@@ -13,6 +13,6 @@ jobs:
     steps:
       - name: Azure login
         id: login
-        uses: azure/login@1.4.3
+        uses: Azure/login@v1.4.6
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS}}
