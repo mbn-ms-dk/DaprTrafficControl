@@ -1,4 +1,4 @@
-name: build_tag_deploy_base_aks
+name: Build, tag and deploy base services and dapr components
 
 on:
   # Triggers the workflow on pull request events but only for the main branch

@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: vehicleregistrationservice
-        image: acrdtctye.azurecr.io/vehicleregistrationservice:v6
+        image: acrdtc1231.azurecr.io/vehicleregistrationservice:v6
         env:
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:

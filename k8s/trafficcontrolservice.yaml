@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - name: trafficcontrolservice
-        image: acrdtctye.azurecr.io/trafficcontrolservice:v5
+        image: acrdtc1231.azurecr.io/trafficcontrolservice:v5
         env:
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:
