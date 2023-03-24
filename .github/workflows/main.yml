@@ -13,6 +13,18 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
+      - name: Build-push ACR
+        uses: Azure/acr-build@v1
+        with:
+          service_principal: ${{ secrets.SERVICE_PRINCIPAL}}
+          service_principal_password: ${{ secrets.SERVICE_PRINCIPAL_PASSWORD }}
+          tenant: ${{ secrets.TENANT }}
+          registry: ${{ secrets.REGISTRY }}
+          repository: ${{ secrets.REPOSITORY }}
+          image: simulation
+          folder: TrafficSimulationServiceConsole
+          branch: main
+          tag: ${{ github.sha }}
       - name: Azure login
         id: login
         uses: Azure/login@v1.4.6
