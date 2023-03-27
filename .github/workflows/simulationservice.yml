@@ -8,9 +8,44 @@ on:
     paths:
       - "TrafficSimulationServiceConsole/**"
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3          
+      jobs:
+        build:
+          runs-on: ubuntu-latest
+          steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
+            - name: Build-push simulation-->ACR
+              uses: Azure/acr-build@v1
+              with:
+                service_principal: ${{ secrets.SERVICE_PRINCIPAL}}
+                service_principal_password: ${{ secrets.SERVICE_PRINCIPAL_PASSWORD }}
+                tenant: ${{ secrets.TENANT }}
+                registry: ${{ secrets.REGISTRY }}
+                repository: ${{ secrets.REPOSITORY }}
+                image: simulation
+                dockerfile: TrafficSimulationServiceConsole/Dockerfile
+                branch: main
+                tag: ${{ github.sha }}
+            - name: Azure login
+              id: login
+              uses: Azure/login@v1.4.6
+              with:
+                creds: ${{ secrets.AZURE_CREDENTIALS}}
+            - name: Set AKS context
+              id: set-context
+              uses: Azure/aks-set-context@v3
+              with:
+                resource-group: '${{ secrets.RESOURCE_GROUP }}' 
+                cluster-name: '${{ secrets.CLUSTER_NAME }}'
+            - name: Setup kubectl
+              id: install-kubectl
+              uses: Azure/setup-kubectl@v3
+            - name: Deploy simulation service to AKS
+              id: deploy-simulation-services-aks
+              uses: Azure/k8s-deploy@v4
+              with:
+                  namespace: 'dtc'
+                  manifests: |
+                    k8s/simulation.yaml
+                  images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/mosquitto:${{ github.sha }}'
+                  pull-images: true       
