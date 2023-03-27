@@ -2,12 +2,9 @@ name: Build, tag and deploy base services and dapr components
 
 on:
   # Triggers the workflow on pull request events but only for the main branch
-  # pull_request:
-  #   branches: [main]
-  #   types: [closed]
-    push:
-      # paths:
-      #   - "azure-vote/**"
+  pull_request:
+    branches: [main]
+    types: [closed]
       
 jobs:
   build:
