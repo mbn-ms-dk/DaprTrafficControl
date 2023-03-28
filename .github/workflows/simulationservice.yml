@@ -2,11 +2,12 @@ name: Build, tag and deploy simulation service
 
 on:
   # Triggers the workflow on pull request events but only for the main branch
-  pull_request:
-    branches: [main]
-    types: [closed]
-    paths:
-      - "TrafficSimulationServiceConsole/**"
+#   pull_request:
+#     branches: [main]
+#     types: [closed]
+#     paths:
+#       - "TrafficSimulationServiceConsole/**"
+    push:
 
 jobs:
   build:

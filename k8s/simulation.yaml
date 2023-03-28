@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: simulation
-        image: acrdtc1231.azurecr.io/dtc/simulation:v4
+        image: acrdtc1231.azurecr.io/dtc/simulation:v1
         env:
           - name: MQTT_HOST
             value: mosquitto
