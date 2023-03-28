@@ -41,11 +41,11 @@ jobs:
         id: install-kubectl
         uses: Azure/setup-kubectl@v3
       - name: Deploy simulation service to AKS
-        id: deploy-simulation-services-aks
+        id: deploy-simulation-service-aks
         uses: Azure/k8s-deploy@v4
         with:
-          namespace: 'dtc'
-          manifests: |
-            k8s/simulation.yaml
+            namespace: 'dtc'
+            manifests: |
+              k8s/simulation.yaml
             images: '${{ secrets.registry }}.azurecr.io/${{ secrets.repository }}/simulation:${{ github.sha }}'
             pull-images: true       
