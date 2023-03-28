@@ -17,7 +17,7 @@ var services = new ServiceCollection();
 services.AddLogging(loggingBuilder => 
     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Category", LogLevel.Information));
 services.AddApplicationInsightsTelemetryWorkerService((ApplicationInsightsServiceOptions options) => 
-    options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+    options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
 
 // Build ServiceProvider.
 IServiceProvider serviceProvider = services.BuildServiceProvider();
