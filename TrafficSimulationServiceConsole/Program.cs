@@ -1,4 +1,7 @@
 ﻿using Microsoft.ApplicationInsights.Extensibility;
+using Azure.Monitor.OpenTelemetry.Exporter;
+using OpenTelemetry;
+using OpenTelemetry.Trace;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TrafficSimulationServiceConsole;
@@ -13,9 +16,18 @@ if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHT
     {
         builder.AddApplicationInsights();
     });
-
+services.AddSingleton<ITelemetryInitializer, DtcTelemetryInitializer>();
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
+
+using var tracer = Sdk.CreateTracerProviderBuilder()
+    .AddSource("simulation")
+    .AddAzureMonitorTraceExporter(cfg => 
+    {
+        cfg.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+    })
+    .Build();
+
 var provider = services.BuildServiceProvider();
 ILogger<Program> logger = provider.GetRequiredService<ILogger<Program>>();
 
