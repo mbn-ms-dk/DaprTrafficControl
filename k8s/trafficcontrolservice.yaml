@@ -34,4 +34,4 @@ spec:
                 key: appinsights-connection-string  # matches the key of the secret data
         ports:
           - containerPort: 6000
-    restartPolicy: Always      
+      restartPolicy: Always      
