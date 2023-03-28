@@ -24,7 +24,7 @@ using var tracer = Sdk.CreateTracerProviderBuilder()
     .AddSource("simulation")
     .AddAzureMonitorTraceExporter(cfg => 
     {
-        cfg.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+        cfg.ConnectionString = "InstrumentationKey=9fe13a4d-fc47-4535-b030-55bbcfba805a;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"; //Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
     })
     .Build();
 
@@ -33,8 +33,6 @@ ILogger<Program> logger = provider.GetRequiredService<ILogger<Program>>();
 
 int lanes = 3;
 CameraSimulation[] cameras = new CameraSimulation[lanes];
-Console.WriteLine(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"))? "No Conn string": Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
-logger.LogInformation(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"))? "No Conn string": Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
 for (var i = 0; i < lanes; i++)
 {
     var camNumber = i + 1;
