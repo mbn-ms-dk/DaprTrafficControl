@@ -2,12 +2,11 @@ name: Build, tag and deploy trafficcontrol service
 
 on:
   # Triggers the workflow on pull request events but only for the main branch
-#   pull_request:
-#     branches: [main]
-#     types: [closed]
-#     paths:
-#       - "TrafficControlService/**"
-    push:
+  pull_request:
+    branches: [main]
+    types: [closed]
+    paths:
+      - "TrafficControlService/**"
 
 jobs:
   build:
