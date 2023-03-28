@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   labels:
     app: simulation
-    version: v1
   name: simulation
   namespace: dtc
 spec:
