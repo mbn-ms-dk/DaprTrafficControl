@@ -17,8 +17,4 @@ RUN dotnet publish "TrafficControlService.csproj" -c Release -o /app/publish /p:
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-
-# Expose ports
-EXPOSE 6000/tcp
-ENV ASPNETCORE_URLS http://*:6000
 ENTRYPOINT ["dotnet", "TrafficControlService.dll"]
