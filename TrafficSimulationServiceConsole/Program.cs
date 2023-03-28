@@ -40,7 +40,7 @@ var telemetryClient = serviceProvider.GetRequiredService<TelemetryClient>();
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 telemetryClient.TrackTrace("Starting simulation");
-logger.LogInformation("Setting number of lanes");
+logger.LogWarning("Setting number of lanes");
 int lanes = 3;
 CameraSimulation[] cameras = new CameraSimulation[lanes];
 for (var i = 0; i < lanes; i++)
@@ -52,6 +52,25 @@ for (var i = 0; i < lanes; i++)
 Parallel.ForEach(cameras, cam => cam.start());
 
 Task.Run(() => Thread.Sleep(Timeout.Infinite)).Wait();
+
+var httpClient = new HttpClient();
+
+                while (true) // This app runs indefinitely. Replace with actual application termination logic.
+                {
+                    logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
+
+                    // Replace with a name which makes sense for this operation.
+                    using (telemetryClient.StartOperation<RequestTelemetry>("operation"))
+                    {
+                        logger.LogWarning("A sample warning message. By default, logs with severity Warning or higher is captured by Application Insights");
+                        logger.LogInformation("Calling bing.com");                    
+                        var res = await httpClient.GetAsync("https://bing.com");
+                        logger.LogInformation("Calling bing completed with status:" + res.StatusCode);
+                        telemetryClient.TrackEvent("Bing call event completed");
+                    }
+
+                    await Task.Delay(1000);
+                }
 // Explicitly call Flush() followed by sleep is required in console apps.
 // This is to ensure that even if application terminates, telemetry is sent to the back-end.
 telemetryClient.Flush();
