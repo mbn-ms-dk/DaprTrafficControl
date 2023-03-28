@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       app: trafficcontrolservice
+  strategy:
+    type: Recreate    
   template:
     metadata:
       labels:
@@ -22,7 +24,8 @@ spec:
     spec:
       containers:
       - name: trafficcontrolservice
-        image: acrdtc1231.azurecr.io/trafficcontrolservice:v5
+        image: acrdtc1231.azurecr.io/dtc/trafficcontrolservice:v1
+        imagePullPolicy: Always
         env:
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:
@@ -31,3 +34,4 @@ spec:
                 key: appinsights-connection-string  # matches the key of the secret data
         ports:
           - containerPort: 6000
+    restartPolicy: Always      
