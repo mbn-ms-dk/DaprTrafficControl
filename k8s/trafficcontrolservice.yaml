@@ -10,6 +10,8 @@ spec:
   selector:
     matchLabels:
       app: trafficcontrolservice
+  strategy:
+    type: Recreate    
   template:
     metadata:
       labels:
@@ -22,12 +24,16 @@ spec:
     spec:
       containers:
       - name: trafficcontrolservice
-        image: acrdtc1231.azurecr.io/trafficcontrolservice:v5
+        image: acrdtc1231.azurecr.io/dtc/trafficcontrolservice:v1
+        imagePullPolicy: Always
         env:
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             valueFrom:
               secretKeyRef:
                 name: app-env-secret  # Matches your secret name
                 key: appinsights-connection-string  # matches the key of the secret data
+          - name: ASPNETCORE_URLS #Make sure to run on port 6000 to communicate with Dapr in this setup
+            value: "http://*:6000"      
         ports:
           - containerPort: 6000
+      restartPolicy: Always      
