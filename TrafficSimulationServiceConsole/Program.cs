@@ -1,35 +1,42 @@
-﻿using Microsoft.ApplicationInsights.Extensibility;
-using Azure.Monitor.OpenTelemetry.Exporter;
-using OpenTelemetry;
-using OpenTelemetry.Trace;
+﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 using TrafficSimulationServiceConsole;
 using TrafficSimulationServiceConsole.Services;
 
 
 var services = new ServiceCollection();
-if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
-    services.Configure<TelemetryConfiguration>(c => c.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
+// if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
+//     services.Configure<TelemetryConfiguration>(c => c.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
 
-    services.AddLogging(builder =>
-    {
-        builder.AddApplicationInsights();
-    });
+//     services.AddLogging(builder =>
+//     {
+//         builder.AddApplicationInsights();
+//     });
+// Being a regular console app, there is no appsettings.json or configuration providers enabled by default.
+// Hence instrumentation key/ connection string and any changes to default logging level must be specified here.
+services.AddLogging(loggingBuilder => loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Category", LogLevel.Information));
+services.AddApplicationInsightsTelemetryWorkerService((ApplicationInsightsServiceOptions options) => options.ConnectionString = "InstrumentationKey=9fe13a4d-fc47-4535-b030-55bbcfba805a;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/");
+// Build ServiceProvider.
+IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+// Obtain logger instance from DI.
+ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+
+// Add custom TelemetryInitializer
 services.AddSingleton<ITelemetryInitializer, DtcTelemetryInitializer>();
+
+// Obtain TelemetryClient instance from DI, for additional manual tracking or to flush.
+var telemetryClient = serviceProvider.GetRequiredService<TelemetryClient>();
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
-using var tracer = Sdk.CreateTracerProviderBuilder()
-    .AddSource("simulation")
-    .AddAzureMonitorTraceExporter(cfg => 
-    {
-        cfg.ConnectionString = "InstrumentationKey=9fe13a4d-fc47-4535-b030-55bbcfba805a;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/"; //Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
-    })
-    .Build();
-
-var provider = services.BuildServiceProvider();
-ILogger<Program> logger = provider.GetRequiredService<ILogger<Program>>();
 
 int lanes = 3;
 CameraSimulation[] cameras = new CameraSimulation[lanes];
