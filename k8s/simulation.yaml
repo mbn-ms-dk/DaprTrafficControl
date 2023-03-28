@@ -30,4 +30,4 @@ spec:
               secretKeyRef:
                 name: app-env-secret  # Matches your secret name
                 key: appinsights-connection-string  # matches the key of the secret data  
-        restartPolicy: Always        
+      restartPolicy: Always        
