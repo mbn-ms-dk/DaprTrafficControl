@@ -32,6 +32,8 @@ spec:
               secretKeyRef:
                 name: app-env-secret  # Matches your secret name
                 key: appinsights-connection-string  # matches the key of the secret data
+          # - name: ASPNETCORE_URLS 
+          #   value: "http://*:6000"      
         ports:
           - containerPort: 6000
       restartPolicy: Always      
