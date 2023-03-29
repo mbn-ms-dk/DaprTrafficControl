@@ -13,17 +13,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<ISpeedingViolationCalculator>(
     new DefaultSpeedingViolationCalculator("A12", 10, 100, 5));
 
+//Add repo
 builder.Services.AddSingleton<IVehicleStateRepository, DaprVehicleStateRepository>();
 
+//Add actors
 builder.Services.AddActors(options => {
     options.Actors.RegisterActor<VehicleActor>();
 });
 
+//Add Dapr
 builder.Services.AddDaprClient(builder => builder.Build());
 
+//Add application insights
 builder.Services.AddApplicationInsightsTelemetry(options => {
      options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING") ;
 });
+
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
@@ -38,7 +43,7 @@ var app = builder.Build();
 app.UseCloudEvents();
 app.MapActorsHandlers();
 
-
+//Test endpoint
 app.MapGet("/", () => "Hi from Api");
 
 var useActors = Environment.GetEnvironmentVariable("USE_ACTORS") ?? "false";
