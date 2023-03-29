@@ -1,7 +1,12 @@
 # DaprTrafficControl
 
-This projrect is based on [https://github.com/EdwinVW/dapr-traffic-control]
-This project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
+This project is based on [https://github.com/EdwinVW/dapr-traffic-control]
+
+and
+
+[https://learn.microsoft.com/en-us/dotnet/architecture/dapr-for-net-developers/]
+
+To run locally this project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
 
 ## Prerequisites
 To run locally [dapr](https://docs.dapr.io/getting-started) is required.
