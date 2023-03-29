@@ -43,7 +43,7 @@ var app = builder.Build();
 app.UseCloudEvents();
 app.MapActorsHandlers();
 
-//Test endpoint for API
+//Test endpoint for API (not used in this demo)
 app.MapGet("/", () => "Hi from Api");
 
 var useActors = Environment.GetEnvironmentVariable("USE_ACTORS") ?? "false";
