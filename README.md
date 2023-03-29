@@ -91,44 +91,11 @@ tye run --dashboard
 Last argument will open the tye dashboard.
 
 ## Deploy to Azure
-add text
-
-### Deploy services needed
-Build Mosquitto image and push to ACR
-```shell
-docker build -t dtc/mosquitto:1.0 ./mosquitto
-```
-Tag image
-```shell
-docker tag dtc/mosquitto:1.0 <acrname>.azurecr.io/mosquitto:v1
-```
-
-Login to ACR
-```shell
-az acr login --name <your-acr-name>
-```
-push image
-```shell
-docker push <acrname>.azurecr.io/mosquitto:v1
-```
-
-From the k8s folder run:
-```shell
-kubectl apply `
-    -f namespace.yaml `
-    -f secrets.yaml `
-    -f zipkin.yaml `
-    -f redis.yaml `
-    -f rabbitmq.yaml `
-    -f mosquitto.yaml `
-    -f maildev.yaml 
-```
-
-Deploy using github actions
+This project is using Github Actions to deploy
 [https://learn.microsoft.com/en-us/azure/aks/kubernetes-action]
+
 1. Create connection between Github and Azure
 ```shell
-<<<<<<< HEAD
 az ad sp create-for-rbac \
     --name "ghActiondtc" \
     --scope /subscriptions/edccd614-120e-4738-9be5-e63d2c6b7b10/resourceGroups/$rg \
@@ -150,7 +117,29 @@ Save the output as follows:
 | cluster_name | The name of your cluster |
 
 
-=======
-tye deploy --interactive
+## Add observability
+Dapr provides the option to get observability [https://docs.dapr.io/operations/monitoring/]
+
+In this setup we will use [zipkin](https://docs.dapr.io/operations/monitoring/tracing/zipkin/) and [grafana](https://docs.dapr.io/operations/monitoring/metrics/grafana/)
+
+We use [helm](https://learn.microsoft.com/en-us/azure/aks/quickstart-helm?tabs=azure-cli) to install a local grafana (TODO switch to managed)
+
+### Install grafana
+Navigate to K8s/observability/grafana folder.
+
+```shell
+kubectl apply -f grafana_namespace.yaml
+
+# install Prometheus
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install dapr-prom prometheus-community/prometheus -n dapr-monitoring --set alertmanager.persistentVolume.enable=false --set pushgateway.persistentVolume.enabled=false --set server.persistentVolume.enabled=false
+
+# install Grafana
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enabled=true
+
+# display Grafana admin password
+& ./get-grafana-password.ps1
 ```
->>>>>>> 7f9b5fc6f766ac73d2c0b963d36083cd1b3d2850
