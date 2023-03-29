@@ -19,12 +19,6 @@ builder.Services.AddActors(options => {
     options.Actors.RegisterActor<VehicleActor>();
 });
 
-// var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3600";
-// var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60002";
-// builder.Services.AddDaprClient(builder => builder
-//     .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
-//     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
-
 builder.Services.AddDaprClient(builder => builder.Build());
 
 builder.Services.AddApplicationInsightsTelemetry(options => {
@@ -33,6 +27,11 @@ builder.Services.AddApplicationInsightsTelemetry(options => {
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
+// Build ServiceProvider.
+IServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
+
+// Obtain logger instance from DI.
+ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -43,7 +42,8 @@ app.MapActorsHandlers();
 app.MapGet("/", () => "Hi from Api");
 
 var useActors = Environment.GetEnvironmentVariable("USE_ACTORS") ?? "false";
-Console.WriteLine($"Actor: {useActors}");
+Console.WriteLine($"use Actor: {useActors}");
+logger.LogInformation($"Use Actor: {useActors}");
 if (useActors.ToLower().Equals("false")) {
     app.MapPost("entrycam", async (VehicleRegistered msg, IVehicleStateRepository repo) => {
         try {
