@@ -125,7 +125,7 @@ In this setup we will use [zipkin](https://docs.dapr.io/operations/monitoring/tr
 We use [helm](https://learn.microsoft.com/en-us/azure/aks/quickstart-helm?tabs=azure-cli) to install a local grafana (TODO switch to managed)
 
 ### Install grafana
-Navigate to K8s/observability/grafana folder.
+Navigate to K8s/observability/grafana folder. (TODO: Use managed grafana)
 
 ```shell
 kubectl apply -f grafana_namespace.yaml
