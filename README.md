@@ -6,6 +6,79 @@ and
 
 [https://learn.microsoft.com/en-us/dotnet/architecture/dapr-for-net-developers/]
 
+## Overall architecture
+
+```mermaid
+graph LR
+    subgraph subTcs[Traffic Control Service]
+       ds1[Dapr Sidecar] -. input binding /entrycam .-> tcs[TrafficControlService]
+       ds1 -. input binding /exitcam .-> tcs
+       tcs -. pub/sub,state management .-> ds1
+    end
+     subgraph subFcs[Fine Collection Service]
+       ds2[Dapr Sidecar] -. input binding /entrycam .-> fcs[FineCollectionService]
+       ds2 -. pub/sub /collectfine .-> fcs
+       fcs -. service invokation,output binding,secrets management .-> ds2
+    end
+    subgraph subVhs[Vehicle Registration Service]
+       ds3[Dapr Sidecar] -. input binding /entrycam .-> vhs[VehicleRegistrationService]
+       ds3 -. service invokation /vehicleinfo/license-number .-> vhs
+    end
+    subgraph subHlp[Infrastrcture]
+        MQTT[MQTT]
+        REDIS[Redis]
+        MQ[RAbbitMQ]
+        SMTP[SMTP]
+     end
+    CS[CameraSimulation] -. input binding .-> MQTT
+    MQTT -. input binding .-> ds1
+    ds1 -. state management .-> REDIS
+    ds1 -. pub/sub .-> MQ
+    MQ -. pub/sub .-> ds2
+    ds2 -. output binding .-> SMTP
+    ds2 -. service invokation .-> ds3
+    
+   linkStyle default stroke-width:2px 
+   style CS fill:blue,stroke:#333,stroke-width:2px;
+   style tcs fill:blue,stroke:#333,stroke-width:2px;
+   style fcs fill:blue,stroke:#333,stroke-width:2px;
+   style vhs fill:blue,stroke:#333,stroke-width:2px;
+   style ds1 fill:darkBlue,stroke:#333,stroke-width:2px;
+   style ds2 fill:darkBlue,stroke:#333,stroke-width:2px;
+   style ds3 fill:darkBlue,stroke:#333,stroke-width:2px;
+   style subTcs fill:lightGrey,opacity:0.5;
+   style subVhs fill:lightGrey,opacity:0.5;
+   style MQTT fill:green,stroke:#333,stroke-width:2px;
+   style REDIS fill:green,stroke:#333,stroke-width:2px;
+   style SMTP fill:green,stroke:#333,stroke-width:2px;
+   style MQ fill:green,stroke:#333,stroke-width:2px;
+   style subFcs fill:lightGrey,opacity:0.5;
+   style subHlp fill:lightGrey,opacity:0.5;
+```
+### Sequence
+
+```mermaid
+sequenceDiagram 
+    autonumber
+    participant CS as CameraSimulation
+    participant tcsEntry as TrafficControlService (Entry camera)
+    participant tcsExit as TrafficControlService (Exit camera)
+    participant fcs as FineCollectionService
+    participant vhs as VehicleRegistrationService
+    participant smtp as SMTP
+    CS->>tcsEntry: POST vehicleRegistered
+    tcsEntry->>tcsEntry: Store VehicleState
+    CS->>tcsExit: POST vehicleRegistered
+    tcsExit->>tcsExit: GET VehicleState
+    tcsExit->>tcsExit: Calculate average speed
+    tcsExit->>fcs: POST speedingViolation (avg speed over limit)
+    fcs->>fcs: Calculate fine
+    fcs->>vhs: GET vehicleInfo/licenseNumber
+    vhs-->>fcs: 
+    fcs->>smtp: Send fine
+```
+
+
 To run locally this project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
 
 ## Prerequisites
