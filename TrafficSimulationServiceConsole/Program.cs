@@ -39,7 +39,9 @@ CameraSimulation[] cameras = new CameraSimulation[lanes];
 for (var i = 0; i < lanes; i++)
 {
     var camNumber = i + 1;
-    var trafficControlService = await MqttTrafficControlService.CreateAsync(camNumber);
+    ITrafficControlService trafficControlService = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SB_CONN_STRING"))  ?
+        await MqttTrafficControlService.CreateAsync(camNumber) :
+        SbTrafficControlService.Create();
     cameras[i] = new CameraSimulation(camNumber, trafficControlService, logger);
 }
 Parallel.ForEach(cameras, cam => cam.start());

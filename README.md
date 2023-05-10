@@ -88,7 +88,7 @@ To run locally [dapr](https://docs.dapr.io/getting-started) is required.
 1. Install [dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) (both for running locally and on Azure Kubernetes)
 2. [Initialize}(https://docs.dapr.io/getting-started/install-dapr-selfhost/)
 
-### Install AKS and dapr
+## Install AKS and dapr
 ### [Aks installation](https://docs.dapr.io/operations/hosting/kubernetes/cluster/setup-aks/)
 
 1. Login
@@ -121,6 +121,7 @@ az aks create --name $aks --resource-group $rg -s Standard_DS3_v2 --node-osdisk-
 ```shell
 az aks get-credentials -n $aks -g $rg
 ```s
+
 ### [Install dapr using AKS Extension](https://docs.dapr.io/developing-applications/integrations/azure/azure-kubernetes-service-extension/)
 1. Install dapr extension
 ```shell
@@ -189,8 +190,7 @@ Save the output as follows:
 | resource_group | The name of your resource group |
 | cluster_name | The name of your cluster |
 
-
-## Add observability
+### Add observability
 Dapr provides the option to get observability [https://docs.dapr.io/operations/monitoring/]
 
 In this setup we will use [zipkin](https://docs.dapr.io/operations/monitoring/tracing/zipkin/) and [grafana](https://docs.dapr.io/operations/monitoring/metrics/grafana/)
@@ -216,3 +216,43 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 # display Grafana admin password
 & ./get-grafana-password.ps1
 ```
+
+### Use Azure Container apps
+[https://docs.microsoft.com/en-us/azure/container-apps/quickstart-dotnet-azure-container-apps]
+1. login
+```shell 
+az login
+```
+
+2. Add containerapp extension
+```shell
+az extension add --name containerapp --upgrade
+az provider register --namespace Microsoft.App
+```
+
+3. Set environment variables
+```shell 
+rg="rg-dtc"
+loc="northeurope"
+acaEnv="aca-dtc"
+```
+
+4. Create resource group
+```shell 
+az group create --name $rg --location $loc
+```
+
+5. Deploy (Use ServiceBus creates a servicebus namespace and topic instead of using mosquitto)
+```shell
+cd bicep
+
+az deployment group create \
+  --resource-group $rg \
+  --template-file ./aca.bicep \
+  --parameters environment_name=$acaEnv useServiceBus=true
+  ```
+
+
+
+
+

@@ -9,6 +9,7 @@ COPY ["TrafficSimulationServiceConsole/TrafficSimulationServiceConsole.csproj", 
 RUN dotnet restore "TrafficSimulationServiceConsole/TrafficSimulationServiceConsole.csproj"
 COPY . .
 WORKDIR "/src/TrafficSimulationServiceConsole"
+COPY . ./
 RUN dotnet build "TrafficSimulationServiceConsole.csproj" -c Release -o /app/build
 
 FROM build AS publish
