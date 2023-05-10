@@ -30,6 +30,6 @@ app.MapGet("vehicleinfo", (string licenseNumber, IVehicleInfoRepository repo) =>
     return Results.Ok(info);
 });
 
-app.Run("http://localhost:6002");
+app.Run(); //"http://localhost:6002"
 
 
