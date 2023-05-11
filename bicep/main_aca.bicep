@@ -137,8 +137,6 @@ module  publishTrafficSimulationServiceConsole 'br/public:deployment-scripts/bui
     location: location
     gitRepositoryUrl: 'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
     buildWorkingDirectory: 'TrafficSimulationServiceConsole'
-    dockerfileDirectory: 'TrafficSimulationServiceConsole'
-    dockerfileName: 'DockerfileAca'
     imageName: 'dtc-simulation-console'
     imageTag: 'latest'
   }
