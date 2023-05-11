@@ -20,11 +20,7 @@ public  class MqttTrafficControlService : ITrafficControlService {
             .WithTcpServer(mqttHost, 1883)
             .WithClientId($"camerasimulation{cameraNumber}")
             .Build();
-            try{
         await mqttClient.ConnectAsync(options, CancellationToken.None);
-            }catch(Exception e){
-                Console.WriteLine(e.Message);
-            }
         return new MqttTrafficControlService(mqttClient);
     }
     public async Task SendVehicleEntryAsync(VehicleRegistered vehicleRegistered) {

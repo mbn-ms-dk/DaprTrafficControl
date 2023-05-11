@@ -44,16 +44,16 @@ services:
       - name: MQTT_HOST
         value: "localhost"
       - name: "SB_CONN_STRING"
-        value: ""
-  - name: dtc-sim-ui
-    project: VisualSimulation/VisualSimulation.csproj      
-  - name: trafficcontrolservice
-    project: TrafficcontrolService/TrafficcontrolService.csproj
-    env:
-      - name: USE_ACTORS
-        value: "false"     
-  - name: vehicleregistrationservice
-    project: VehicleRegistrationService/VehicleRegistrationService.csproj
-  - name: finecollectionservice
-    project: FineCollectionService/FineCollectionService.csproj      
+        value: "none"
+  # - name: dtc-sim-ui
+  #   project: VisualSimulation/VisualSimulation.csproj      
+  # - name: trafficcontrolservice
+  #   project: TrafficcontrolService/TrafficcontrolService.csproj
+  #   env:
+  #     - name: USE_ACTORS
+  #       value: "false"     
+  # - name: vehicleregistrationservice
+  #   project: VehicleRegistrationService/VehicleRegistrationService.csproj
+  # - name: finecollectionservice
+  #   project: FineCollectionService/FineCollectionService.csproj      
   
