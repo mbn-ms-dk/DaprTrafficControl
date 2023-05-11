@@ -155,7 +155,7 @@ resource listKeysAuthRule 'Microsoft.ServiceBus/namespaces/authorizationRules@20
 }
 
 // variable pub sub connection string
-var sbConnectionString = useServiceBus ? listKeysAuthRule.listKeys().primaryConnectionString : ''//serviceBus.listKeys().primaryConnectionString : ''
+var sbConnectionString = useServiceBus ? listKeysAuthRule.listKeys().primaryConnectionString : ''
 var dtcSimConsoleEnvVars = [
   {
     name: 'SB_CONN_STRING'

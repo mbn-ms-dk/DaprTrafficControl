@@ -5,14 +5,14 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["TrafficSimulationServiceConsole/TrafficSimulationServiceConsole.csproj", "TrafficSimulationServiceConsole/"]
-RUN dotnet restore "TrafficSimulationServiceConsole/TrafficSimulationServiceConsole.csproj"
-COPY . .
-WORKDIR "/src/TrafficSimulationServiceConsole"
-RUN dotnet build "TrafficSimulationServiceConsole.csproj" -c Release -o /app/build
+COPY ["TrafficSimulationServiceConsole.csproj", "./"]
+RUN dotnet restore "TrafficSimulationServiceConsole.csproj"
+COPY . ./
+#WORKDIR "/src/TrafficSimulationServiceConsole"
+RUN dotnet build  -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "TrafficSimulationServiceConsole.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish  -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
