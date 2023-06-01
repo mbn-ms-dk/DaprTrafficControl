@@ -220,37 +220,31 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 ### Use Azure Container apps
 [https://docs.microsoft.com/en-us/azure/container-apps/quickstart-dotnet-azure-container-apps]
 1. login
-```shell 
+```powershell 
 az login
 ```
 
 2. Add containerapp extension
-```shell
+```powershell
 az extension add --name containerapp --upgrade
 az provider register --namespace Microsoft.App
 ```
 
 3. Set environment variables
-```shell 
-rg="rg-dtc"
-loc="northeurope"
-acaEnv="aca-dtc"
+```powershell 
+$rg="rg-dtc"
+$loc="northeurope"
 ```
 
 4. Create resource group
-```shell 
+```powershell 
 az group create --name $rg --location $loc
 ```
 
-5. Deploy (Use ServiceBus creates a servicebus namespace and topic instead of using mosquitto)
-```shell
-cd bicep
-
-az deployment group create \
-  --resource-group $rg \
-  --template-file ./aca.bicep \
-  --parameters environment_name=$acaEnv useServiceBus=true
-  ```
+5. Deploy 
+```powershell
+az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
+```
 
 
 

@@ -3,6 +3,8 @@ using FineCollectionService.Models;
 using FineCollectionService.Proxies;
 using FineCollectionService.Services;
 using FineCollectionService.Utils;
+using Microsoft.ApplicationInsights.Extensibility;
+using FineCollectionService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,8 +23,9 @@ builder.Services.AddSingleton<VehicleRegistrationService>(_ =>
     new VehicleRegistrationService(DaprClient.CreateInvokeHttpClient(
         "vehicleregistrationservice"))); //, $"http://localhost:{3602}")));
 
-builder.Services.AddApplicationInsightsTelemetry(options => {
-     options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.Configure<TelemetryConfiguration>((o) => {
+    o.TelemetryInitializers.Add(new AppInsightsTelemetryInitializer());
 });
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
