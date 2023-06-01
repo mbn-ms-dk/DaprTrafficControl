@@ -16,8 +16,7 @@ var services = new ServiceCollection();
 // Hence instrumentation key/ connection string and any changes to default logging level must be specified here.
 services.AddLogging(loggingBuilder => 
     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Category", LogLevel.Information));
-services.AddApplicationInsightsTelemetryWorkerService((ApplicationInsightsServiceOptions options) => 
-    options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING"));
+
 
 // Build ServiceProvider.
 IServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -25,14 +24,16 @@ IServiceProvider serviceProvider = services.BuildServiceProvider();
 // Obtain logger instance from DI.
 ILogger<Program> logger = serviceProvider.GetRequiredService<ILogger<Program>>();
 
-// Add custom TelemetryInitializer
-services.AddSingleton<ITelemetryInitializer, DtcTelemetryInitializer>();
 
-// Obtain TelemetryClient instance from DI, for additional manual tracking or to flush.
-var telemetryClient = serviceProvider.GetRequiredService<TelemetryClient>();
+services.AddApplicationInsightsTelemetry();
+services.Configure<TelemetryConfiguration>((o) => {
+    o.TelemetryInitializers.Add(new AppInsightsTelemetryInitializer());
+});
+
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
 services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
-telemetryClient.TrackTrace("Starting simulation");
+
+
 logger.LogWarning("Setting number of lanes");
 int lanes = 3;
 CameraSimulation[] cameras = new CameraSimulation[lanes];
@@ -50,5 +51,4 @@ Task.Run(() => Thread.Sleep(Timeout.Infinite)).Wait();
 
 // Explicitly call Flush() followed by sleep is required in console apps.
 // This is to ensure that even if application terminates, telemetry is sent to the back-end.
-telemetryClient.Flush();
 Task.Delay(5000).Wait();

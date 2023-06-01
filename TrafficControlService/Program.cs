@@ -6,6 +6,8 @@ using TrafficControlService.Events;
 using TrafficControlService.Models;
 using TrafficControlService.Repositories;
 using TrafficControlService.Services;
+using Microsoft.ApplicationInsights.Extensibility;
+using TrafficControlService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +27,9 @@ builder.Services.AddActors(options => {
 builder.Services.AddDaprClient(builder => builder.Build());
 
 //Add application insights
-builder.Services.AddApplicationInsightsTelemetry(options => {
-     options.ConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING") ;
+builder.Services.AddApplicationInsightsTelemetry();
+builder.Services.Configure<TelemetryConfiguration>((o) => {
+    o.TelemetryInitializers.Add(new AppInsightsTelemetryInitializer());
 });
 
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)

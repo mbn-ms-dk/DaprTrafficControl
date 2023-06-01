@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "mosquittoServiceName": {
+      "value": "dtc-mosquitto"
+    },
+    "mailServiceName": {
+      "value": "dtc-mail"
+    },
+    "finecollectionServiceName": {
+      "value": "dtc-finecollection"
+    },
+    "trafficcontrolServiceName": {
+      "value": "dtc-trafficcontrol"
+    },
+    "trafficsimulationServiceName": {
+      "value": "dtc-trafficsimulation"
+    },
+    "vehicleregistrationServiceName": {
+      "value": "dtc-vehicleregistration"
+    },
+    "serviceBusTopicName": {
+      "value": "speedingviolations"
+    },
+    "serviceBusTopicAuthorizationRuleName": {
+      "value": "speedingviolations-manage-policy"
+    },
+    "cosmosDbDatabaseName": {
+      "value": "dtcdb"
+    },
+    "cosmosDbCollectionName": {
+      "value": "speedingviolations"
+    }
+  }
+}
