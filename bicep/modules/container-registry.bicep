@@ -22,5 +22,5 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   }
 }
 
-@description('Name of Container Registry')
+@description('Name of Container Registry created')
 output acrName string = acr.name
