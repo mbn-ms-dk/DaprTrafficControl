@@ -47,7 +47,6 @@ module buildtrafficsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    gitBranch: 'upd/iac1'
     //buildWorkingDirectory: 'TrafficSimulationServiceConsole'
     dockerfileDirectory: 'TrafficSimulationServiceConsole'
     imageName: 'trafficsimulation'
