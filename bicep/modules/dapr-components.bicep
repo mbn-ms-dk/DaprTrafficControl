@@ -152,6 +152,7 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
       }
     ]
     scopes: [
+      trafficSimulationServiceName
       trafficcontrolserviceServiceName
     ]
   }
@@ -179,6 +180,7 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
       }
     ]
     scopes: [
+      trafficSimulationServiceName
       trafficcontrolserviceServiceName
     ]
   }

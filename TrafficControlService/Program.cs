@@ -33,7 +33,7 @@ builder.Services.Configure<TelemetryConfiguration>((o) => {
 });
 
 // Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
-builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
+// builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
 // Build ServiceProvider.
 IServiceProvider serviceProvider = builder.Services.BuildServiceProvider();
