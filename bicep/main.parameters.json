@@ -2,6 +2,9 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "secretStoreComponentName": {
+      "value": "secretstoreakv"
+    },
     "mosquittoServiceName": {
       "value": "dtc-mosquitto"
     },
@@ -31,6 +34,15 @@
     },
     "cosmosDbCollectionName": {
       "value": "speedingviolations"
+    },
+    "emailUserSecretName": {
+      "value": "email-user"
+    },
+    "emailPasswordSecretName": {
+      "value": "email-password"
+    },
+    "applicationInsightsSecretName": {
+      "value": "appinsights-key"
     }
   }
 }

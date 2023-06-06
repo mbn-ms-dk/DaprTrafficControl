@@ -19,6 +19,22 @@ param cosmosDbDatabaseName string
 @description('The name of Cosmos DB\'s collection.')
 param cosmosDbCollectionName string
 
+@description('The name of Dapr component for the secret store building block.')
+// We disable lint of this line as it is not a secret but the name of the Dapr component
+#disable-next-line secure-secrets-in-params
+param secretStoreComponentName string
+
+@description('The name of the email user')
+param emailUserSecretName string
+
+@description('The password of the email user')
+param emailPasswordSecretName string
+
+@description('The name of the key vault resource.')
+param keyVaultName string
+
+@description('The name of the service for the traffic simulation service. The name is used as Dapr App ID.')
+param trafficSimulationServiceName string
 
 @description('The name of the service for the traffic control service. The name is used as Dapr App ID.')
 param trafficcontrolserviceServiceName string
@@ -36,6 +52,27 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2022-03-01'
 
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' existing = {
   name: cosmosDbName
+}
+
+//Secret Store Component
+resource secretstoreComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-03-01' = {
+  name: secretStoreComponentName
+  parent: containerAppsEnvironment
+  properties: {
+    componentType: 'secretstores.azure.keyvault'
+    version: 'v1'
+    metadata: [
+      {
+        name: 'vaultName'
+        value: keyVaultName
+      }
+    ]
+    scopes: [
+      trafficSimulationServiceName
+      trafficcontrolserviceServiceName
+      finecollectionserviceServiceName
+    ]
+  }
 }
 
 //Cosmos DB State Store Component
@@ -103,7 +140,7 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
     metadata: [
       {
         name: 'url'
-        value: 'mqtt://mosquitto:1883'
+        value: 'dtc-mosquitto'
       }
       {
         name: 'topic'
@@ -130,7 +167,7 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
     metadata: [
       {
         name: 'url'
-        value: 'mqtt://mosquitto:1883'
+        value: 'dtc-mosquitto'
       }
       {
         name: 'topic'
@@ -147,6 +184,16 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
   }
 }
 
+//mail secrets
+module emailSecrets 'secrets/mail-server-secrets.bicep' = {
+  name: 'emailSecrets'
+  params: {
+    keyVaultName: keyVaultName
+    emailUserSecretName: emailUserSecretName
+    emailPasswordSecretName: emailPasswordSecretName
+  }
+}
+
 //Email component
 resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
   name: 'sendmail'
@@ -154,18 +201,19 @@ resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-0
   properties: {
     componentType: 'bindings.smtp'
     version: 'v1'
+    secretStoreComponent: secretStoreComponentName
     metadata: [
       {
         name: 'host'
-        value: 'mailserver'
+        value: 'dtc-mail'
       }
       {
          name: 'user'
-         value: '_username'
+         secretRef: emailUserSecretName
       }
       {
           name: 'password'
-          value: '_password'
+          secretRef: emailPasswordSecretName
       }
       {
           name: 'skipTLSVerify'
@@ -173,9 +221,12 @@ resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-0
       }
     ]
     scopes: [
-      trafficcontrolserviceServiceName
+      finecollectionserviceServiceName
     ]
   }
+  dependsOn: [
+    secretstoreComponent
+  ]
 }
 
 

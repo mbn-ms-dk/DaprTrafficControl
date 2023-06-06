@@ -23,13 +23,12 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerRegistryUserAssignedIdentityId string
 
-@secure()
-@description('The Application Insights Instrumentation.')
-param appInsightsInstrumentationKey string
-
 @description('The target and dapr port for the mosquitto service.')
 param mosquittoPortNumber int
 
+// ------------------
+// RESOURCES
+// ------------------
 
 // ------------------
 // MODULES
@@ -41,22 +40,23 @@ module buildMosquitto 'br/public:deployment-scripts/build-acr:2.0.1' = {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
+    gitBranch: 'upd/iac1'
     buildWorkingDirectory: 'mosquitto'
     imageName: 'mosquitto'
     imageTag: 'latest'
+    cleanupPreference: 'Always'
   }
 }
 
 // ------------------
 // RESOURCES
 // ------------------
-
 resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: mosquittoServiceName
   location: location
   tags: tags
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
         '${containerRegistryUserAssignedIdentityId}': {}
     }
@@ -77,12 +77,6 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
         logLevel: 'info'
         enableApiLogging: true
       }
-      secrets: [
-        {
-          name: 'appinsights-key'
-          value: appInsightsInstrumentationKey
-        }
-      ]
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
@@ -99,12 +93,6 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
-          env: [
-            {
-              name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
-            }
-          ]
         }
       ]
       scale: {
@@ -119,5 +107,5 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
 // OUTPUTS
 // ------------------
 
-@description('The name of the container app for the frontend web app service.')
+@description('The name of the container app for the mosquitto service.')
 output mosquittoServiceContainerAppName string = mosquittoService.name
