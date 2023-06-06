@@ -28,6 +28,9 @@ resource mailService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: mailServiceName
   location: location
   tags: tags
+  identity: {
+    type: 'SystemAssigned'
+    }
   properties: {
     managedEnvironmentId: containerAppsEnvironmentId
     configuration: {

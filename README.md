@@ -246,7 +246,10 @@ az group create --name $rg --location $loc
 az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
 ```
 
+$acr="acrdi2ohuv2juwg6"
 
+az acr build --registry $acr --image "trafficcontrol" --file 'TrafficControlService/Dockerfile' . 
 
-
+az acr build --registry $acr --image "trafficsimulation" --file 'TrafficSimulationServiceConsole/Dockerfile' . 
+az containerapp update --name 'dtc-trafficsimulation' --resource-group $rg
 

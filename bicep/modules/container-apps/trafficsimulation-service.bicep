@@ -13,6 +13,13 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
+@description('The name of the Key Vault.')
+param keyVaultName string
+
+@secure()
+@description('The Application Insights Instrumentation.')
+param appInsightsInstrumentationKey string
+
 @description('The name of the service for the trafficsimulation service. The name is use as Dapr App ID.')
 param trafficsimulationServiceName string
 
@@ -23,9 +30,8 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerRegistryUserAssignedIdentityId string
 
-@secure()
-@description('The Application Insights Instrumentation.')
-param appInsightsInstrumentationKey string
+@description('Application insights secret name.')
+param applicationInsightsSecretName string
 
 @description('The target and dapr port for the trafficsimulation service.')
 param trafficsimulationPortNumber int
@@ -41,9 +47,11 @@ module buildtrafficsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'TrafficsimulationServiceConsole'
+    //buildWorkingDirectory: 'TrafficSimulationServiceConsole'
+    dockerfileDirectory: 'TrafficSimulationServiceConsole'
     imageName: 'trafficsimulation'
     imageTag: 'latest'
+    cleanupPreference: 'Always'
   }
 }
 
@@ -51,12 +59,12 @@ module buildtrafficsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
 // RESOURCES
 // ------------------
 
-resource trafficsimulationService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-preview' = {
   name: trafficsimulationServiceName
   location: location
   tags: tags
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
         '${containerRegistryUserAssignedIdentityId}': {}
     }
@@ -102,7 +110,11 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-06-01-previe
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
+            }
+            {
+              name: 'MQTT_HOST'
+              value: 'dtc-mosquitto'
             }
           ]
         }
@@ -115,9 +127,18 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-06-01-previe
   }
 }
 
+
+//RBAC on keyvault
+module rbacTrafficeSimulationService 'kv-rbac.bicep' = {
+  name: 'rbacTrafficSimulationService'
+  params: {
+    keyVaultName: keyVaultName
+    servicePrincipalId: trafficsimulationService.identity.principalId
+  }
+}
 // ------------------
 // OUTPUTS
 // ------------------
 
-@description('The name of the container app for the frontend web app service.')
+@description('The name of the container app for the simulation service.')
 output trafficsimulationServiceContainerAppName string = trafficsimulationService.name

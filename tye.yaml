@@ -43,8 +43,6 @@ services:
     env:
       - name: MQTT_HOST
         value: "localhost"
-      - name: "SB_CONN_STRING"
-        value: "none"
   - name: dtc-sim-ui
     project: VisualSimulation/VisualSimulation.csproj      
   - name: trafficcontrolservice
