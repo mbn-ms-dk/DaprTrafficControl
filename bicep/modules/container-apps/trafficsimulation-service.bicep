@@ -28,7 +28,7 @@ param trafficsimulationServiceName string
 param containerRegistryName string
 
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
-param containerRegistryUserAssignedIdentityId string
+param containerUserAssignedManagedIdentityId string
 
 @description('Application insights secret name.')
 param applicationInsightsSecretName string
@@ -66,7 +66,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
-        '${containerRegistryUserAssignedIdentityId}': {}
+        '${containerUserAssignedManagedIdentityId}': {}
     }
   }
   properties: {
@@ -76,9 +76,10 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
       ingress: {
         external: false
         targetPort: trafficsimulationPortNumber
+        allowInsecure: true
       }
       dapr: {
-        enabled: true
+        enabled: false
         appId: trafficsimulationServiceName
         appProtocol: 'http'
         appPort: trafficsimulationPortNumber
@@ -94,7 +95,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
-          identity: containerRegistryUserAssignedIdentityId
+          identity: containerUserAssignedManagedIdentityId
         }
       ] : []
     }

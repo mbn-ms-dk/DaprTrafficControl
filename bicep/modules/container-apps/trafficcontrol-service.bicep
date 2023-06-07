@@ -21,7 +21,7 @@ param trafficcontrolServiceName string
 param containerRegistryName string
 
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
-param containerRegistryUserAssignedIdentityId string
+param containerUserAssignedManagedIdentityId string
 
 // Service Bus
 @description('The name of the service bus namespace.')
@@ -47,6 +47,17 @@ param appInsightsInstrumentationKey string
 @description('The target and dapr port for the trafficcontrol service.')
 param trafficcontrolPortNumber int
 
+@description('Data actions permitted by the Role Definition')
+param dataActions array = [
+  'Microsoft.DocumentDB/databaseAccounts/readMetadata'
+  'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
+]
+
+
+var roleDefinitionId = guid('sql-role-definition-', trafficcontrolService.id)
+var roleDefinitionName = 'My Read Write Role'
+var roleAssignmentId = guid(roleDefinitionId, trafficcontrolService.id)
+
 
 // ------------------
 // MODULES
@@ -58,9 +69,10 @@ module buildtrafficcontrol 'br/public:deployment-scripts/build-acr:2.0.1' = {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'TrafficcontrolService'
+    dockerfileDirectory: 'TrafficControlService'
     imageName: 'trafficcontrol'
     imageTag: 'latest'
+    cleanupPreference: 'Always'
   }
 }
 
@@ -95,9 +107,9 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
   location: location
   tags: tags
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
-        '${containerRegistryUserAssignedIdentityId}': {}
+        '${containerUserAssignedManagedIdentityId}': {}
     }
   }
   properties: {
@@ -107,6 +119,8 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
       ingress: {
         external: false
         targetPort: trafficcontrolPortNumber
+        exposedPort: trafficcontrolPortNumber
+        transport: 'tcp'
       }
       dapr: {
         enabled: true
@@ -125,7 +139,7 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
-          identity: containerRegistryUserAssignedIdentityId
+          identity: containerUserAssignedManagedIdentityId
         }
       ] : []
     }
@@ -143,6 +157,10 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
               name: 'ApplicationInsights__InstrumentationKey'
               secretRef: 'appinsights-key'
             }
+            {
+              name: 'USE_ACTORS'
+              value: 'false'
+            }
           ]
         }
       ]
@@ -155,8 +173,7 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
 }
 
 // Assign cosmosdb account read/write access to aca system assigned identity
-// To know more: https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-rbac
-resource trafficcontrolService_cosmosdb_role_assignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2022-08-15' = {
+resource trafficcontrolService_cosmosdb_role_assignment_system 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2022-08-15' = {
   name: guid(subscription().id, trafficcontrolService.name, '00000000-0000-0000-0000-000000000002')
   parent: cosmosDbAccount
   properties: {
@@ -166,8 +183,34 @@ resource trafficcontrolService_cosmosdb_role_assignment 'Microsoft.DocumentDB/da
   }
 }
 
-// Enable publish message to Service Bus using app managed identity.
-resource trafficcontrolService_sb_role_assignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource sqlRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions@2021-04-15' = {
+  parent: cosmosDbAccount
+  name: roleDefinitionId
+  properties: {
+    roleName: roleDefinitionName
+    type: 'CustomRole'
+    assignableScopes: [
+      cosmosDbAccount.id
+    ]
+    permissions: [
+      {
+        dataActions: dataActions
+      }
+    ]
+  }
+}
+
+resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = {
+  parent: cosmosDbAccount
+  name: roleAssignmentId
+  properties: {
+    roleDefinitionId: sqlRoleDefinition.id
+    principalId: trafficcontrolService.identity.principalId
+    scope: cosmosDbAccount.id
+  }
+}
+
+resource trafficcontrolService_sb_role_assignment_system 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(resourceGroup().id, trafficcontrolService.name, '69a216fc-b8fb-44d8-bc22-1f3c2cd27a39')
   properties: {
     principalId: trafficcontrolService.identity.principalId
@@ -176,7 +219,6 @@ resource trafficcontrolService_sb_role_assignment 'Microsoft.Authorization/roleA
   }
   scope: serviceBusTopic
 }
-
 // ------------------
 // OUTPUTS
 // ------------------

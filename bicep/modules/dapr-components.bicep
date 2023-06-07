@@ -97,6 +97,10 @@ resource statestoreComponent 'Microsoft.App/managedEnvironments/daprComponents@2
         name: 'collection'
         value: cosmosDbCollectionName
       }
+      {
+        name: 'actorStateStore'
+        value: 'true'
+      }
     ]
     scopes: [
       trafficcontrolserviceServiceName
@@ -140,7 +144,7 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
     metadata: [
       {
         name: 'url'
-        value: 'dtc-mosquitto'
+        value: 'mqtt://dtc-mosquitto:1883'
       }
       {
         name: 'topic'
@@ -152,7 +156,6 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
       }
     ]
     scopes: [
-      trafficSimulationServiceName
       trafficcontrolserviceServiceName
     ]
   }
@@ -168,7 +171,7 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
     metadata: [
       {
         name: 'url'
-        value: 'dtc-mosquitto'
+        value: 'mqtt://dtc-mosquitto:1883'
       }
       {
         name: 'topic'
@@ -180,7 +183,6 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
       }
     ]
     scopes: [
-      trafficSimulationServiceName
       trafficcontrolserviceServiceName
     ]
   }

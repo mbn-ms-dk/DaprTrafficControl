@@ -21,7 +21,7 @@ param vehicleregistrationServiceName string
 param containerRegistryName string
 
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
-param containerRegistryUserAssignedIdentityId string
+param containerUserAssignedManagedIdentityId string
 
 @secure()
 @description('The Application Insights Instrumentation.')
@@ -44,6 +44,7 @@ module buildvehicleregistration 'br/public:deployment-scripts/build-acr:2.0.1' =
     dockerfileDirectory: 'VehicleRegistrationService'
     imageName: 'vehicleregistration'
     imageTag: 'latest'
+    cleanupPreference: 'Always'
   }
 }
 
@@ -56,9 +57,9 @@ resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-prev
   location: location
   tags: tags
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
-        '${containerRegistryUserAssignedIdentityId}': {}
+        '${containerUserAssignedManagedIdentityId}': {}
     }
   }
   properties: {
@@ -86,7 +87,7 @@ resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-prev
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
-          identity: containerRegistryUserAssignedIdentityId
+          identity: containerUserAssignedManagedIdentityId
         }
       ] : []
     }

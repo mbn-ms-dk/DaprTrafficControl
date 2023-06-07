@@ -21,7 +21,7 @@ param finecollectionServiceName string
 param containerRegistryName string
 
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
-param containerRegistryUserAssignedIdentityId string
+param containerUserAssignedManagedIdentityId string
 
 // Service Bus
 @description('The name of the service bus namespace.')
@@ -48,6 +48,7 @@ module buildfinecollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
     dockerfileDirectory: 'FineCollectionService'
     imageName: 'finecollection'
     imageTag: 'latest'
+    cleanupPreference: 'Always'
   }
 }
 
@@ -64,9 +65,9 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
   location: location
   tags: tags
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
-        '${containerRegistryUserAssignedIdentityId}': {}
+        '${containerUserAssignedManagedIdentityId}': {}
     }
   }
   properties: {
@@ -94,7 +95,7 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
-          identity: containerRegistryUserAssignedIdentityId
+          identity: containerUserAssignedManagedIdentityId
         }
       ] : []
     }

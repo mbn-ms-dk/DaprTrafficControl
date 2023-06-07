@@ -42,9 +42,6 @@ param serviceBusName string
 @description('The name of the service bus topic.')
 param serviceBusTopicName string
 
-@description('The name of the service bus topic\'s authorization rule.')
-param serviceBusTopicAuthorizationRuleName string
-
 // Cosmos DB
 @description('The name of the provisioned Cosmos DB resource.')
 param cosmosDbName string 
@@ -89,7 +86,6 @@ param vehicleregistrationPortNumber int
 // ------------------
 
 var containerRegistryPullRoleGuid='7f951dda-4ed3-4680-a7ca-43fe172d538d'
-var keyVaultSecretUserRoleGuid = '4633458b-17de-408a-b874-0445c86b69e6'
 
 // ------------------
 // RESOURCES
@@ -107,36 +103,21 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
   name: containerRegistryName
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
-  name: keyVaultName
-}
-
-resource containerRegistryUserAssignedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+resource containerUserAssignedManagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: 'aca-user-identity-${uniqueString(resourceGroup().id)}'
   location: location
   tags: tags
 }
 
 resource containerRegistryPullRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if(!empty(containerRegistryName)) {
-  name: guid(subscription().id, containerRegistry.id, containerRegistryUserAssignedIdentity.id) 
+  name: guid(subscription().id, containerRegistry.id, containerUserAssignedManagedIdentity.id) 
   scope: containerRegistry
   properties: {
-    principalId: containerRegistryUserAssignedIdentity.properties.principalId
+    principalId: containerUserAssignedManagedIdentity.properties.principalId
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', containerRegistryPullRoleGuid)
     principalType: 'ServicePrincipal'
   }
 }
-
-// resource keyVaultSecretUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-//   name: guid(subscription().id, keyVault.id, containerRegistryUserAssignedIdentity.id, keyVaultSecretUserRoleGuid) 
-//   scope: keyVault
-//   properties: {
-//     principalId: containerRegistryUserAssignedIdentity.properties.principalId
-//     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretUserRoleGuid)
-//     principalType: 'ServicePrincipal'
-//   }
-// }
-
 module applicationInsightsSecret 'secrets/app-insights-secrets.bicep' = {
   name: 'appInsightsSecret-${uniqueString(resourceGroup().id)}'
   params: {
@@ -164,7 +145,7 @@ module mosquittoService 'container-apps/mosquitto.bicep' = {
     location: location
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
-    containerRegistryUserAssignedIdentityId: containerRegistryUserAssignedIdentity.id
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     containerRegistryName: containerRegistryName
     mosquittoPortNumber: mosquittoPortNumber
   }
@@ -179,59 +160,59 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
     keyVaultName: keyVaultName
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
     containerRegistryName: containerRegistryName
-    containerRegistryUserAssignedIdentityId: containerRegistryUserAssignedIdentity.id
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     applicationInsightsSecretName: applicationInsightsSecretName
     trafficsimulationPortNumber: trafficsimulationPortNumber
   }
 }
 
-// module trafficcontrolService 'container-apps/trafficcontrol-service.bicep' = {
-//   name: 'trafficcontrolService-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     trafficcontrolServiceName: trafficcontrolServiceName
-//     location: location
-//     tags: tags
-//     containerAppsEnvironmentId: containerAppsEnvironment.id
-//     serviceBusName: serviceBusName
-//     serviceBusTopicName: serviceBusTopicName
-//     containerRegistryName: containerRegistryName
-//     containerRegistryUserAssignedIdentityId: containerRegistryUserAssignedIdentity.id
-//     cosmosDbName: cosmosDbName
-//     cosmosDbDatabaseName: cosmosDbDatabaseName
-//     cosmosDbCollectionName: cosmosDbCollectionName
-//     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
-//     trafficcontrolPortNumber: trafficcontrolPortNumber
-//   }
-// }
+module trafficcontrolService 'container-apps/trafficcontrol-service.bicep' = {
+  name: 'trafficcontrolService-${uniqueString(resourceGroup().id)}'
+  params: {
+    trafficcontrolServiceName: trafficcontrolServiceName
+    location: location
+    tags: tags
+    containerAppsEnvironmentId: containerAppsEnvironment.id
+    serviceBusName: serviceBusName
+    serviceBusTopicName: serviceBusTopicName
+    containerRegistryName: containerRegistryName
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
+    cosmosDbName: cosmosDbName
+    cosmosDbDatabaseName: cosmosDbDatabaseName
+    cosmosDbCollectionName: cosmosDbCollectionName
+    appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    trafficcontrolPortNumber: trafficcontrolPortNumber
+  }
+}
 
-// module finecollectionService 'container-apps/finecollection-service.bicep' = {
-//   name: 'finecollectionService-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     finecollectionServiceName: finecollectionServiceName
-//     location: location
-//     tags: tags
-//     containerAppsEnvironmentId: containerAppsEnvironment.id
-//     serviceBusName: serviceBusName
-//     containerRegistryName: containerRegistryName
-//     containerRegistryUserAssignedIdentityId: containerRegistryUserAssignedIdentity.id
-//     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
-//     finecollectionPortNumber: finecollectionPortNumber
-//   }
-// }
+module finecollectionService 'container-apps/finecollection-service.bicep' = {
+  name: 'finecollectionService-${uniqueString(resourceGroup().id)}'
+  params: {
+    finecollectionServiceName: finecollectionServiceName
+    location: location
+    tags: tags
+    containerAppsEnvironmentId: containerAppsEnvironment.id
+    serviceBusName: serviceBusName
+    containerRegistryName: containerRegistryName
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
+    appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    finecollectionPortNumber: finecollectionPortNumber
+  }
+}
 
-// module vehicleregistrationService 'container-apps/vehicleregistration-service.bicep' = {
-//   name: 'vehicleregistrationService-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     vehicleregistrationServiceName: vehicleregistrationServiceName
-//     location: location
-//     tags: tags
-//     containerAppsEnvironmentId: containerAppsEnvironment.id
-//     containerRegistryName: containerRegistryName
-//     containerRegistryUserAssignedIdentityId: containerRegistryUserAssignedIdentity.id
-//     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
-//     vehicleregistrationPortNumber: vehicleregistrationPortNumber
-//   }
-// }
+module vehicleregistrationService 'container-apps/vehicleregistration-service.bicep' = {
+  name: 'vehicleregistrationService-${uniqueString(resourceGroup().id)}'
+  params: {
+    vehicleregistrationServiceName: vehicleregistrationServiceName
+    location: location
+    tags: tags
+    containerAppsEnvironmentId: containerAppsEnvironment.id
+    containerRegistryName: containerRegistryName
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
+    appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    vehicleregistrationPortNumber: vehicleregistrationPortNumber
+  }
+}
 
 // ------------------
 // OUTPUTS
@@ -243,15 +224,12 @@ output mailServiceContainerAppName string = mailService.outputs.mailServiceConta
 @description('The name of the container app for the mosquitto service.')
 output mosquittoServiceContainerAppName string = mosquittoService.outputs.mosquittoServiceContainerAppName
 
-// @description('The name of the container app for the front end finecollection service.')
-// output finecollectionServiceContainerAppName string = finecollectionService.outputs.finecollectionServiceContainerAppName
-
-// @description('The name of the container app for the front end trafficcontrol service.')
-// output trafficcontrolServiceContainerAppName string = trafficcontrolService.outputs.trafficcontrolServiceContainerAppName
-
-// @description('The name of the container app for the front end trafficsimulation service.')
-// output trafficsimulationServiceContainerAppName string = trafficsimulationService.outputs.trafficsimulationServiceContainerAppName
-
-// @description('The name of the container app for the front end vehicleregistration service.')
-// output vehicleregistrationServiceContainerAppName string = vehicleregistrationService.outputs.vehicleregistrationServiceContainerAppName
+@description('The name of the container app for the front end trafficsimulation service.')
+output trafficsimulationServiceContainerAppName string = trafficsimulationService.outputs.trafficsimulationServiceContainerAppName
+@description('The name of the container app for the front end trafficcontrol service.')
+output trafficcontrolServiceContainerAppName string = trafficcontrolService.outputs.trafficcontrolServiceContainerAppName
+@description('The name of the container app for the front end finecollection service.')
+output finecollectionServiceContainerAppName string = finecollectionService.outputs.finecollectionServiceContainerAppName
+@description('The name of the container app for the front end vehicleregistration service.')
+output vehicleregistrationServiceContainerAppName string = vehicleregistrationService.outputs.vehicleregistrationServiceContainerAppName
 

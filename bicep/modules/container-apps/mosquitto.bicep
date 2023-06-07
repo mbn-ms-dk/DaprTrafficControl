@@ -21,7 +21,7 @@ param mosquittoServiceName string
 param containerRegistryName string
 
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
-param containerRegistryUserAssignedIdentityId string
+param containerUserAssignedManagedIdentityId string
 
 @description('The target and dapr port for the mosquitto service.')
 param mosquittoPortNumber int
@@ -57,7 +57,7 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
-        '${containerRegistryUserAssignedIdentityId}': {}
+        '${containerUserAssignedManagedIdentityId}': {}
     }
   }
   properties: {
@@ -67,6 +67,8 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
       ingress: {
         external: false
         targetPort: mosquittoPortNumber
+        exposedPort: mosquittoPortNumber
+        transport: 'tcp'
       }
       dapr: {
         enabled: true
@@ -79,7 +81,7 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
-          identity: containerRegistryUserAssignedIdentityId
+          identity: containerUserAssignedManagedIdentityId
         }
       ] : []
     }
@@ -108,3 +110,6 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
 
 @description('The name of the container app for the mosquitto service.')
 output mosquittoServiceContainerAppName string = mosquittoService.name
+
+@description('The endpoint of the mosquitto service.')
+output mosquittoEndpoint string = mosquittoService.properties.configuration.ingress.fqdn

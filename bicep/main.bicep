@@ -198,7 +198,6 @@ module containerApps 'modules/container-apps.bicep' = {
     containerAppsEnvironmentName: containerAppsEnvironmentName
     serviceBusName: serviceBus.outputs.serviceBusName
     serviceBusTopicName: serviceBus.outputs.serviceBusTopicName
-    serviceBusTopicAuthorizationRuleName: serviceBus.outputs.serviceBusTopicAuthorizationRuleName    
     cosmosDbName: cosmosDb.outputs.cosmosDbName
     cosmosDbDatabaseName: cosmosDb.outputs.cosmosDbDatabaseName
     cosmosDbCollectionName: cosmosDb.outputs.cosmosDbCollectionName    
@@ -227,16 +226,16 @@ output mailServiceContainerAppName string = containerApps.outputs.mailServiceCon
 @description('The name of the container app for the mosquitto service.')
 output mosquittoServiceContainerAppName string = containerApps.outputs.mosquittoServiceContainerAppName
 
-// @description('The name of the container app for the finecollection service.')
-// output finecollectionServiceContainerAppName string = containerApps.outputs.finecollectionServiceContainerAppName
+@description('The name of the container app for the trafficsimulation service.')
+output trafficsimulationServiceContainerAppName string = containerApps.outputs.trafficsimulationServiceContainerAppName
 
-// @description('The name of the container app for the trafficcontrol service.')
-// output trafficcontrolServiceContainerAppName string = containerApps.outputs.trafficcontrolServiceContainerAppName
+@description('The name of the container app for the trafficcontrol service.')
+output trafficcontrolServiceContainerAppName string = containerApps.outputs.trafficcontrolServiceContainerAppName
 
-// @description('The name of the container app for the trafficsimulation service.')
-// output trafficsimulationServiceContainerAppName string = containerApps.outputs.trafficsimulationServiceContainerAppName
+@description('The name of the container app for the finecollection service.')
+output finecollectionServiceContainerAppName string = containerApps.outputs.finecollectionServiceContainerAppName
 
-// @description('The name of the container app for the vehicleregistration service.')
-// output vehicleregistrationServiceContainerAppName string = containerApps.outputs.vehicleregistrationServiceContainerAppName
+@description('The name of the container app for the vehicleregistration service.')
+output vehicleregistrationServiceContainerAppName string = containerApps.outputs.vehicleregistrationServiceContainerAppName
 
 
