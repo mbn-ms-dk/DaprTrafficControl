@@ -166,15 +166,14 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
     location: location
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
-    keyVaultName: keyVaultName
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
-    applicationInsightsSecretName: applicationInsightsSecretName
     trafficsimulationPortNumber: trafficsimulationPortNumber
     useMosquitto: useMosquitto
     mosquittoBrokerName: mosquittoServiceName
     trafficControlServiceName: trafficcontrolServiceName
+    trafficcontrolPortNumber: trafficcontrolPortNumber
   }
 }
 
@@ -254,6 +253,9 @@ output mosquittoServiceContainerAppName string = mosquittoService.outputs.mosqui
 
 @description('The name of the container app for the front end trafficsimulation service.')
 output trafficsimulationServiceContainerAppName string = trafficsimulationService.outputs.trafficsimulationServiceContainerAppName
+
+@description('The name of the container app for the visual simulation service.')
+output visualsimulationServiceContainerAppName string = visualsimulationService.name
 @description('The name of the container app for the front end trafficcontrol service.')
 output trafficcontrolServiceContainerAppName string = trafficcontrolService.outputs.trafficcontrolServiceContainerAppName
 @description('The name of the container app for the front end finecollection service.')

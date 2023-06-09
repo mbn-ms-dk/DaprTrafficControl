@@ -106,7 +106,7 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: applicationInsightsSecretName
+              secretRef: 'appinsights-key'
             }
            
           ]
@@ -119,3 +119,9 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
     }
   }
 }
+// ------------------
+// OUTPUTS
+// ------------------
+
+@description('The name of the container app for the visual simulation service.')
+output visualsimulationServiceContainerAppName string = visualsimulationService.name

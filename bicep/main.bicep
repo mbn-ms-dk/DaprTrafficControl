@@ -241,6 +241,9 @@ output mosquittoServiceContainerAppName string = containerApps.outputs.mosquitto
 @description('The name of the container app for the trafficsimulation service.')
 output trafficsimulationServiceContainerAppName string = containerApps.outputs.trafficsimulationServiceContainerAppName
 
+@description('The name of the container app for the visual simulation service.')
+output visualsimulationServiceContainerAppName string = containerApps.outputs.visualsimulationServiceContainerAppName
+
 @description('The name of the container app for the trafficcontrol service.')
 output trafficcontrolServiceContainerAppName string = containerApps.outputs.trafficcontrolServiceContainerAppName
 

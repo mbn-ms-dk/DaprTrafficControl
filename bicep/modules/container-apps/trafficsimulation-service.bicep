@@ -13,9 +13,6 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
-@description('The name of the Key Vault.')
-param keyVaultName string
-
 @secure()
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
@@ -30,9 +27,6 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerUserAssignedManagedIdentityId string
 
-@description('Application insights secret name.')
-param applicationInsightsSecretName string
-
 @description('The target and dapr port for the trafficsimulation service.')
 param trafficsimulationPortNumber int
 
@@ -41,6 +35,9 @@ param useMosquitto bool = false
 
 @description('The name of traffic control service')
 param trafficControlServiceName string = 'dtc-trafficcontrol'
+
+@description('The dapr port for the trafficcontrol service.')
+param trafficcontrolPortNumber int
 
 @description('The name of the mosquitto broker.')
 param mosquittoBrokerName string = 'dtc-mosquitto'
@@ -120,7 +117,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: applicationInsightsSecretName
+              secretRef: 'appinsights-key'
             }
             {
               name: 'USE_MOSQUITTO'
@@ -132,7 +129,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
             }
             {
               name: 'TRAFFIC_CONTROL_ENDPOINT'
-              value: trafficControlServiceName
+              value: 'http://${trafficControlServiceName}:${trafficcontrolPortNumber}'
             }
           ]
         }
@@ -145,15 +142,6 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
   }
 }
 
-
-//RBAC on keyvault
-module rbacTrafficeSimulationService 'kv-rbac.bicep' = {
-  name: 'rbacTrafficSimulationService'
-  params: {
-    keyVaultName: keyVaultName
-    servicePrincipalId: trafficsimulationService.identity.principalId
-  }
-}
 // ------------------
 // OUTPUTS
 // ------------------
