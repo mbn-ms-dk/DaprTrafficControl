@@ -36,6 +36,15 @@ param applicationInsightsSecretName string
 @description('The target and dapr port for the trafficsimulation service.')
 param trafficsimulationPortNumber int
 
+@description('Use the mosquitto broker for MQTT communication. if false it uses Http')
+param useMosquitto bool = false
+
+@description('The name of traffic control service')
+param trafficControlServiceName string = 'dtc-trafficcontrol'
+
+@description('The name of the mosquitto broker.')
+param mosquittoBrokerName string = 'dtc-mosquitto'
+
 
 // ------------------
 // MODULES
@@ -114,8 +123,16 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
               secretRef: applicationInsightsSecretName
             }
             {
+              name: 'USE_MOSQUITTO'
+              value: '${useMosquitto}'
+            }
+            {
               name: 'MQTT_HOST'
-              value: 'dtc-mosquitto'
+              value: mosquittoBrokerName
+            }
+            {
+              name: 'TRAFFIC_CONTROL_ENDPOINT'
+              value: trafficControlServiceName
             }
           ]
         }

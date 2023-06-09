@@ -23,10 +23,15 @@ services.Configure<TelemetryConfiguration>((o) => {
     o.TelemetryInitializers.Add(new AppInsightsTelemetryInitializer());
 });
 
-// Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
-// services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
+var useMosquitto= Environment.GetEnvironmentVariable("USE_MOSQUITTO");
+if (string.IsNullOrWhiteSpace(useMosquitto))
+{
+    throw new InvalidOperationException("Traffic control endpoint is not configured");
+}
 
-
+if (useMosquitto.Equals("true", StringComparison.InvariantCultureIgnoreCase))
+{
+logger.LogInformation("Using mosquitto");
 logger.LogInformation("Setting number of lanes");
 int lanes = 3;
 CameraSimulation[] cameras = new CameraSimulation[lanes];
@@ -39,6 +44,23 @@ for (var i = 0; i < lanes; i++)
 Parallel.ForEach(cameras, cam => cam.start());
 
 Task.Run(() => Thread.Sleep(Timeout.Infinite)).Wait();
+}
+else
+{
+    var trafficControlEndpoint = Environment.GetEnvironmentVariable("TRAFFIC_CONTROL_ENDPOINT");
+if (string.IsNullOrWhiteSpace(trafficControlEndpoint))
+{
+    throw new InvalidOperationException("Traffic control endpoint is not configured");
+}
+logger.LogInformation($"Using HTTP endpoint {trafficControlEndpoint}");
+var client = new HttpClient { BaseAddress = new Uri(trafficControlEndpoint) };
+
+var cameras = Enumerable.Range(0, 4).Select(cameraNumber => new CameraHttpsimulation(cameraNumber, client));
+
+Parallel.ForEach(cameras, async camera => await camera.Start());
+
+Task.Run(() => Thread.Sleep(Timeout.Infinite)).Wait();
+}
 
 // Explicitly call Flush() followed by sleep is required in console apps.
 // This is to ensure that even if application terminates, telemetry is sent to the back-end.

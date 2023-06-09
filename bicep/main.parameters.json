@@ -46,6 +46,9 @@
     },
     "applicationInsightsSecretName": {
       "value": "appinsights-key"
+    },
+    "useMosquitto": {
+      "value": false
     }
   }
 }

@@ -20,7 +20,7 @@ public  class CameraSimulation {
         rnd = new Random();
         this.logger = logger;
     }
-    //Start simulation (need to set timer run)
+    //Start simulation
     public  Task start() {
         Console.WriteLine($"Start camera {camNumber} simulation");
         logger.LogInformation($"Start camera {camNumber} simulation");

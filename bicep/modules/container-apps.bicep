@@ -87,6 +87,9 @@ param vehicleregistrationPortNumber int
 @description('The target and dapr port for the visualsimulation service.')
 param visualsimulationPortNumber int
 
+@description('Use the mosquitto broker for MQTT communication. if false it uses Http')
+param useMosquitto bool
+
 // ------------------
 // VARIABLES
 // ------------------
@@ -144,7 +147,7 @@ module mailService 'container-apps/mail.bicep' = {
   }
 }
 
-module mosquittoService 'container-apps/mosquitto.bicep' = {
+module mosquittoService 'container-apps/mosquitto.bicep' = if(useMosquitto) {
   name: 'mosquittoService-${uniqueString(resourceGroup().id)}'
   params: {
     mosquittoServiceName: mosquittoServiceName
@@ -169,6 +172,9 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     applicationInsightsSecretName: applicationInsightsSecretName
     trafficsimulationPortNumber: trafficsimulationPortNumber
+    useMosquitto: useMosquitto
+    mosquittoBrokerName: mosquittoServiceName
+    trafficControlServiceName: trafficcontrolServiceName
   }
 }
 
@@ -180,6 +186,7 @@ module visualsimulationService 'container-apps/visualsim-service.bicep' = {
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     visualsimulationPortNumber: visualsimulationPortNumber

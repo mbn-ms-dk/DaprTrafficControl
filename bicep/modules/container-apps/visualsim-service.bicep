@@ -30,6 +30,9 @@ param visualsimulationPortNumber int
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
 
+@description('Application insights secret name.')
+param applicationInsightsSecretName string
+
 // ------------------
 // MODULES
 // ------------------
@@ -103,7 +106,7 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: appInsightsInstrumentationKey
+              secretRef: applicationInsightsSecretName
             }
            
           ]

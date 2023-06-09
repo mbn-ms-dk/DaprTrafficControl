@@ -90,6 +90,9 @@ param emailPasswordSecretName string
 @description('Application Insights secret name')
 param applicationInsightsSecretName string
 
+@description('Use the mosquitto broker for MQTT communication. if false it uses Http')
+param useMosquitto bool
+
 // App Ports
 @description('The target and dapr port for the mosquitto service.')
 param mosquittoPortNumber int = 1883
@@ -218,6 +221,7 @@ module containerApps 'modules/container-apps.bicep' = {
     trafficsimulationPortNumber: trafficsimulationPortNumber
     visualsimulationPortNumber: visualsimulationPortNumber 
     vehicleregistrationPortNumber: vehicleregistrationPortNumber
+    useMosquitto: useMosquitto
   }
   dependsOn: [
     daprComponents
