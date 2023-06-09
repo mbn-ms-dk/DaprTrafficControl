@@ -48,6 +48,9 @@ param trafficcontrolServiceName string
 @description('The name of the service for the trafficsimulation service. The name is use as Dapr App ID.')
 param trafficsimulationServiceName string
 
+@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
+param visualsimulationServiceName string
+
 @description('The name of the service for the vehicleregistration service. The name is use as Dapr App ID.')
 param vehicleregistrationServiceName string
 
@@ -106,6 +109,10 @@ param trafficsimulationPortNumber int = 5286
 @description('The dapr port for the vehicleregistration service.')
 param vehicleregistrationPortNumber int = 5287
 
+@description('The target and dapr port for the visualsimulation service.')
+param visualsimulationPortNumber int = 5123
+
+
 // ------------------
 // RESOURCES
 // ------------------
@@ -154,9 +161,9 @@ module daprComponents 'modules/dapr-components.bicep' = {
     cosmosDbCollectionName: cosmosDb.outputs.cosmosDbCollectionName  
     keyVaultName: keyVaultName  
     secretStoreComponentName: secretStoreComponentName
+    emailPortNumber: mailPortNumber
     emailUserSecretName: emailUserSecretName
     emailPasswordSecretName: emailPasswordSecretName
-    trafficSimulationServiceName: trafficsimulationServiceName
     trafficcontrolserviceServiceName: trafficcontrolServiceName
     finecollectionserviceServiceName: finecollectionServiceName
   }
@@ -182,7 +189,6 @@ module keyVault 'modules/key-vault.bicep' = {
     tags: tags
   }
 }
-
 module containerApps 'modules/container-apps.bicep' = {
   name: 'containerApps-${uniqueString(resourceGroup().id)}'
   params: {
@@ -194,6 +200,7 @@ module containerApps 'modules/container-apps.bicep' = {
     finecollectionServiceName: finecollectionServiceName
     trafficcontrolServiceName: trafficcontrolServiceName
     trafficsimulationServiceName: trafficsimulationServiceName
+    visualsimulationServiceName: visualsimulationServiceName
     vehicleregistrationServiceName: vehicleregistrationServiceName
     containerAppsEnvironmentName: containerAppsEnvironmentName
     serviceBusName: serviceBus.outputs.serviceBusName
@@ -209,6 +216,7 @@ module containerApps 'modules/container-apps.bicep' = {
     finecollectionPortNumber: finecollectionPortNumber
     trafficcontrolPortNumber: trafficcontrolPortNumber
     trafficsimulationPortNumber: trafficsimulationPortNumber
+    visualsimulationPortNumber: visualsimulationPortNumber 
     vehicleregistrationPortNumber: vehicleregistrationPortNumber
   }
   dependsOn: [

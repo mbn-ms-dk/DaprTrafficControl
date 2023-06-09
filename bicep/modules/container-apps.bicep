@@ -35,6 +35,9 @@ param trafficsimulationServiceName string
 @description('The name of the service for the vehicleregistration service. The name is use as Dapr App ID.')
 param vehicleregistrationServiceName string
 
+@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
+param visualsimulationServiceName string
+
 // Service Bus
 @description('The name of the service bus namespace.')
 param serviceBusName string
@@ -80,6 +83,9 @@ param trafficsimulationPortNumber int
 
 @description('The dapr port for the vehicleregistration service.')
 param vehicleregistrationPortNumber int
+
+@description('The target and dapr port for the visualsimulation service.')
+param visualsimulationPortNumber int
 
 // ------------------
 // VARIABLES
@@ -166,6 +172,20 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
   }
 }
 
+module visualsimulationService 'container-apps/visualsim-service.bicep' = {
+  name: 'visualsimulationService-${uniqueString(resourceGroup().id)}'
+  params: {
+    visualsimulationServiceName: visualsimulationServiceName
+    location: location
+    tags: tags
+    containerAppsEnvironmentId: containerAppsEnvironment.id
+    appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    containerRegistryName: containerRegistryName
+    containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
+    visualsimulationPortNumber: visualsimulationPortNumber
+  }
+}
+
 module trafficcontrolService 'container-apps/trafficcontrol-service.bicep' = {
   name: 'trafficcontrolService-${uniqueString(resourceGroup().id)}'
   params: {
@@ -194,6 +214,7 @@ module finecollectionService 'container-apps/finecollection-service.bicep' = {
     containerAppsEnvironmentId: containerAppsEnvironment.id
     serviceBusName: serviceBusName
     containerRegistryName: containerRegistryName
+    keyVaultName: keyVaultName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
     finecollectionPortNumber: finecollectionPortNumber

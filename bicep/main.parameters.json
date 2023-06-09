@@ -20,6 +20,9 @@
     "trafficsimulationServiceName": {
       "value": "dtc-trafficsimulation"
     },
+    "visualsimulationServiceName": {
+      "value": "dtv-visualsimulation"
+    },
     "vehicleregistrationServiceName": {
       "value": "dtc-vehicleregistration"
     },

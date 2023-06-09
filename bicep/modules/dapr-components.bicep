@@ -24,6 +24,9 @@ param cosmosDbCollectionName string
 #disable-next-line secure-secrets-in-params
 param secretStoreComponentName string
 
+@description('The name of the email port number')
+param emailPortNumber int
+
 @description('The name of the email user')
 param emailUserSecretName string
 
@@ -32,9 +35,6 @@ param emailPasswordSecretName string
 
 @description('The name of the key vault resource.')
 param keyVaultName string
-
-@description('The name of the service for the traffic simulation service. The name is used as Dapr App ID.')
-param trafficSimulationServiceName string
 
 @description('The name of the service for the traffic control service. The name is used as Dapr App ID.')
 param trafficcontrolserviceServiceName string
@@ -68,7 +68,6 @@ resource secretstoreComponent 'Microsoft.App/managedEnvironments/daprComponents@
       }
     ]
     scopes: [
-      trafficSimulationServiceName
       trafficcontrolserviceServiceName
       finecollectionserviceServiceName
     ]
@@ -210,6 +209,10 @@ resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-0
       {
         name: 'host'
         value: 'dtc-mail'
+      }
+      {
+        name: 'port'
+        value: '${emailPortNumber}'
       }
       {
          name: 'user'

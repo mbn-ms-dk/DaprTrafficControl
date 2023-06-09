@@ -119,8 +119,9 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
       ingress: {
         external: false
         targetPort: trafficcontrolPortNumber
-        exposedPort: trafficcontrolPortNumber
-        transport: 'tcp'
+        // exposedPort: trafficcontrolPortNumber
+        transport: 'auto'
+        allowInsecure: true
       }
       dapr: {
         enabled: true

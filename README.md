@@ -224,10 +224,11 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 az login
 ```
 
-2. Add containerapp extension
+2. Add containerapp and Azure iotextension
 ```powershell
 az extension add --name containerapp --upgrade
 az provider register --namespace Microsoft.App
+az extension add --name azure-iot
 ```
 
 3. Set environment variables
@@ -252,4 +253,6 @@ az acr build --registry $acr --image "trafficcontrol" --file 'TrafficControlServ
 
 az acr build --registry $acr --image "trafficsimulation" --file 'TrafficSimulationServiceConsole/Dockerfile' . 
 az containerapp update --name 'dtc-trafficsimulation' --resource-group $rg
+
+az iot hub device-identity create --device-id simulation --hub-name iothubdi2ohuv2juwg6
 
