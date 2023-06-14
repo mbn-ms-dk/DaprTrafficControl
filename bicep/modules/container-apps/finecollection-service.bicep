@@ -34,6 +34,9 @@ param serviceBusName string
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
 
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
+
 @description('The target and dapr port for the finecollection service.')
 param finecollectionPortNumber int
 
@@ -66,7 +69,7 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existi
 resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: finecollectionServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: finecollectionServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -91,7 +94,7 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
       }
       secrets: [
         {
-          name: 'appinsights-key'
+          name: applicationInsightsSecretName
           value: appInsightsInstrumentationKey
         }
       ]
@@ -114,7 +117,7 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
             }
           ]
         }
@@ -140,7 +143,7 @@ resource finecollectionService_sb_role_assignment 'Microsoft.Authorization/roleA
 
 //add access tro keyvault
 module kvr 'kv-rbac.bicep' = {
-  name: 'kvr'
+  name: 'kvrbac-${uniqueString(resourceGroup().id)}'
   params: {
     keyVaultName: keyVaultName
     servicePrincipalId: finecollectionService.identity.principalId

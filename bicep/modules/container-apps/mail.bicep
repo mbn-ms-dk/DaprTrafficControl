@@ -27,7 +27,7 @@ param mailPortNumber int
 resource mailService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: mailServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: mailServiceName })
   identity: {
     type: 'SystemAssigned'
     }

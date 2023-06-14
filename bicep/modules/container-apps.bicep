@@ -90,6 +90,9 @@ param visualsimulationPortNumber int
 @description('Use the mosquitto broker for MQTT communication. if false it uses Http')
 param useMosquitto bool
 
+@description('Use actors in traffic control service')
+param useActors bool
+
 // ------------------
 // VARIABLES
 // ------------------
@@ -167,6 +170,7 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     trafficsimulationPortNumber: trafficsimulationPortNumber
@@ -185,6 +189,7 @@ module visualsimulationService 'container-apps/visualsim-service.bicep' = {
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     visualsimulationPortNumber: visualsimulationPortNumber
@@ -206,7 +211,9 @@ module trafficcontrolService 'container-apps/trafficcontrol-service.bicep' = {
     cosmosDbDatabaseName: cosmosDbDatabaseName
     cosmosDbCollectionName: cosmosDbCollectionName
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     trafficcontrolPortNumber: trafficcontrolPortNumber
+    useActors: useActors
   }
 }
 
@@ -222,6 +229,7 @@ module finecollectionService 'container-apps/finecollection-service.bicep' = {
     keyVaultName: keyVaultName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     finecollectionPortNumber: finecollectionPortNumber
   }
 }
@@ -236,6 +244,7 @@ module vehicleregistrationService 'container-apps/vehicleregistration-service.bi
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
+    applicationInsightsSecretName: applicationInsightsSecretName
     vehicleregistrationPortNumber: vehicleregistrationPortNumber
   }
 }
@@ -248,7 +257,7 @@ module vehicleregistrationService 'container-apps/vehicleregistration-service.bi
 output mailServiceContainerAppName string = mailService.outputs.mailServiceContainerAppName
 
 @description('The name of the container app for the mosquitto service.')
-output mosquittoServiceContainerAppName string = mosquittoService.outputs.mosquittoServiceContainerAppName
+output mosquittoServiceContainerAppName string = useMosquitto ? mosquittoService.outputs.mosquittoServiceContainerAppName : 'notDeployed'
 
 @description('The name of the container app for the front end trafficsimulation service.')
 output trafficsimulationServiceContainerAppName string = trafficsimulationService.outputs.trafficsimulationServiceContainerAppName

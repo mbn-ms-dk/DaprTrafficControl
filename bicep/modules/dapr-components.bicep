@@ -192,7 +192,7 @@ resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022
 
 //mail secrets
 module emailSecrets 'secrets/mail-server-secrets.bicep' = {
-  name: 'emailSecrets'
+  name: 'emailSecrets-${uniqueString(resourceGroup().id)}'
   params: {
     keyVaultName: keyVaultName
     emailUserSecretName: emailUserSecretName

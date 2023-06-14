@@ -30,7 +30,8 @@ param visualsimulationPortNumber int
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
 
-g
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
 
 // ------------------
 // MODULES
@@ -56,7 +57,7 @@ module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
 resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview' = {
   name: visualsimulationServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: visualsimulationServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -82,7 +83,7 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
       }
       secrets: [
         {
-          name: 'appinsights-key'
+          name: applicationInsightsSecretName
           value: appInsightsInstrumentationKey
         }
       ]
@@ -105,9 +106,8 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
             }
-           
           ]
         }
       ]

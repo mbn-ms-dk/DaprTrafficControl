@@ -11,24 +11,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddSingleton<IFineCalculator, HardCodedFineCalculator>();
 
-// var daprHttpPort = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT") ?? "3601";
-// var daprGrpcPort = Environment.GetEnvironmentVariable("DAPR_GRPC_PORT") ?? "60001";
-// builder.Services.AddDaprClient(builder => builder
-//     .UseHttpEndpoint($"http://localhost:{daprHttpPort}")
-//     .UseGrpcEndpoint($"http://localhost:{daprGrpcPort}"));
-
 builder.Services.AddDaprClient(builder => builder.Build());
 
 builder.Services.AddSingleton<VehicleRegistrationService>(_ =>
     new VehicleRegistrationService(DaprClient.CreateInvokeHttpClient(
-        "vehicleregistrationservice"))); //, $"http://localhost:{3602}")));
+        "vehicleregistrationservice"))); 
 
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.Configure<TelemetryConfiguration>((o) => {
     o.TelemetryInitializers.Add(new AppInsightsTelemetryInitializer());
 });
-// Enable application insights for Kubernetes (LogLevel.Error is the default; Setting it to LogLevel.Trace to see detailed logs.)
-builder.Services.AddApplicationInsightsKubernetesEnricher(diagnosticLogLevel: LogLevel.Error);
 
 var app = builder.Build();
 

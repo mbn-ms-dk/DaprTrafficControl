@@ -30,6 +30,9 @@ param appInsightsInstrumentationKey string
 @description('The target and dapr port for the vehicleregistration service.')
 param vehicleregistrationPortNumber int
 
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
+
 
 // ------------------
 // MODULES
@@ -55,7 +58,7 @@ module buildvehicleregistration 'br/public:deployment-scripts/build-acr:2.0.1' =
 resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: vehicleregistrationServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: vehicleregistrationServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -80,7 +83,7 @@ resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-prev
       }
       secrets: [
         {
-          name: 'appinsights-key'
+          name: applicationInsightsSecretName
           value: appInsightsInstrumentationKey
         }
       ]
@@ -103,7 +106,7 @@ resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-prev
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
             }
           ]
         }

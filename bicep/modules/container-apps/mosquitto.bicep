@@ -53,7 +53,7 @@ module buildMosquitto 'br/public:deployment-scripts/build-acr:2.0.1' = {
 resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: mosquittoServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: mosquittoServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {

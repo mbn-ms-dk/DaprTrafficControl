@@ -49,6 +49,9 @@
     },
     "useMosquitto": {
       "value": false
+    },
+    "useActors": {
+      "value": false
     }
   }
 }

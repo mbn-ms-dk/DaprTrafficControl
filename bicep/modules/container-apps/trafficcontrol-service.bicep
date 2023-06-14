@@ -44,8 +44,14 @@ param cosmosDbCollectionName string
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
 
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
+
 @description('The target and dapr port for the trafficcontrol service.')
 param trafficcontrolPortNumber int
+
+@description('Use actors in traffic control service')
+param useActors bool
 
 @description('Data actions permitted by the Role Definition')
 param dataActions array = [
@@ -105,7 +111,7 @@ resource cosmosDbDatabaseCollection 'Microsoft.DocumentDB/databaseAccounts/sqlDa
 resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' = {
   name: trafficcontrolServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: trafficcontrolServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -133,7 +139,7 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
       }
       secrets: [
         {
-          name: 'appinsights-key'
+          name: applicationInsightsSecretName
           value: appInsightsInstrumentationKey
         }
       ]
@@ -156,11 +162,11 @@ resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' 
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
             }
             {
               name: 'USE_ACTORS'
-              value: 'false'
+              value: '${useActors}'
             }
           ]
         }
