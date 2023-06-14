@@ -42,6 +42,9 @@ param trafficControlServiceName string = 'dtc-trafficcontrol'
 @description('The name of the mosquitto broker.')
 param mosquittoBrokerName string = 'dtc-mosquitto'
 
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
+
 
 // ------------------
 // MODULES
@@ -68,7 +71,7 @@ module buildtrafficsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
 resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-preview' = {
   name: trafficsimulationServiceName
   location: location
-  tags: tags
+  tags: union(tags, { containerApp: trafficsimulationServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -94,7 +97,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
       }
       secrets: [
         {
-          name: 'appinsights-key'
+          name: applicationInsightsSecretName
           value: appInsightsInstrumentationKey
         }
       ]
@@ -117,7 +120,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
           env: [
             {
               name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: 'appinsights-key'
+              secretRef: applicationInsightsSecretName
             }
             {
               name: 'USE_MOSQUITTO'

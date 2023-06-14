@@ -224,11 +224,10 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 az login
 ```
 
-2. Add containerapp and Azure iotextension
+2. Add containerapp extension
 ```powershell
 az extension add --name containerapp --upgrade
 az provider register --namespace Microsoft.App
-az extension add --name azure-iot
 ```
 
 3. Set environment variables
