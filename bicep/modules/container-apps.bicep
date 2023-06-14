@@ -173,7 +173,7 @@ module trafficsimulationService 'container-apps/trafficsimulation-service.bicep'
     useMosquitto: useMosquitto
     mosquittoBrokerName: mosquittoServiceName
     trafficControlServiceName: trafficcontrolServiceName
-    trafficcontrolPortNumber: trafficcontrolPortNumber
+    // trafficcontrolPortNumber: trafficcontrolPortNumber
   }
 }
 
@@ -185,7 +185,6 @@ module visualsimulationService 'container-apps/visualsim-service.bicep' = {
     tags: tags
     containerAppsEnvironmentId: containerAppsEnvironment.id
     appInsightsInstrumentationKey: applicationInsights.properties.InstrumentationKey
-    applicationInsightsSecretName: applicationInsightsSecretName
     containerRegistryName: containerRegistryName
     containerUserAssignedManagedIdentityId: containerUserAssignedManagedIdentity.id
     visualsimulationPortNumber: visualsimulationPortNumber

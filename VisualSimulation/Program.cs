@@ -15,4 +15,4 @@ builder.Services.Configure<TelemetryConfiguration>((o) => {
 var app = builder.Build();
 app.UseDefaultFiles();
 app.UseStaticFiles();
-app.Run(); //("http://localhost:5123");
+app.Run(); 

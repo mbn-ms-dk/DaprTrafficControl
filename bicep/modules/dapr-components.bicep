@@ -42,6 +42,9 @@ param trafficcontrolserviceServiceName string
 @description('The name of the service for the finecollection service. The name is used as Dapr App ID and as the name of service bus topic subscription.')
 param finecollectionserviceServiceName string
 
+@description('Use the mosquitto broker for MQTT communication. if false it uses Http')
+param useMosquitto bool
+
 // ------------------
 // RESOURCES
 // ------------------
@@ -134,7 +137,7 @@ resource pubsubComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-
 }
 
 // Entrycam component
-resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
+resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' =  if (useMosquitto) {
   name: 'entrycam'
   parent: containerAppsEnvironment
   properties: {
@@ -161,7 +164,7 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
 }
 
 // Exitcam component
-resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
+resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview'  =  if (useMosquitto) {
   name: 'exitcam'
   parent: containerAppsEnvironment
   properties: {

@@ -36,8 +36,8 @@ param useMosquitto bool = false
 @description('The name of traffic control service')
 param trafficControlServiceName string = 'dtc-trafficcontrol'
 
-@description('The dapr port for the trafficcontrol service.')
-param trafficcontrolPortNumber int
+// @description('The dapr port for the trafficcontrol service.')
+// param trafficcontrolPortNumber int
 
 @description('The name of the mosquitto broker.')
 param mosquittoBrokerName string = 'dtc-mosquitto'
@@ -129,7 +129,7 @@ resource trafficsimulationService 'Microsoft.App/containerApps@2022-11-01-previe
             }
             {
               name: 'TRAFFIC_CONTROL_ENDPOINT'
-              value: 'http://${trafficControlServiceName}:${trafficcontrolPortNumber}'
+              value: 'http://${trafficControlServiceName}'
             }
           ]
         }

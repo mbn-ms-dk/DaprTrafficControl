@@ -4,8 +4,8 @@ import { HttpTrafficControlService } from './trafficcontrolsvc-http.js';
 
 export const Settings =
 {
-    //trafficControlService: new MqttTrafficControlService('localhost', 9001),
-    trafficControlService: new HttpTrafficControlService('http://dtc-trafficcontrol:5047'),
+    //trafficControlService: new MqttTrafficControlService('localhost', 9001), //when running locally
+    trafficControlService: new HttpTrafficControlService('http://dtc-trafficcontrol:5047'), //when publishinhg to Azure
     laneCount: 5,
     carCount: 15,
     carTypes:

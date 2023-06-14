@@ -169,6 +169,7 @@ module daprComponents 'modules/dapr-components.bicep' = {
     emailPasswordSecretName: emailPasswordSecretName
     trafficcontrolserviceServiceName: trafficcontrolServiceName
     finecollectionserviceServiceName: finecollectionServiceName
+    useMosquitto: useMosquitto
   }
   dependsOn: [
     containerAppsEnvironment

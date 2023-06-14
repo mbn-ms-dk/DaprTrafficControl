@@ -30,8 +30,7 @@ param visualsimulationPortNumber int
 @description('The Application Insights Instrumentation.')
 param appInsightsInstrumentationKey string
 
-@description('Application insights secret name.')
-param applicationInsightsSecretName string
+g
 
 // ------------------
 // MODULES

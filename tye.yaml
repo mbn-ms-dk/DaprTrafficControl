@@ -44,7 +44,7 @@ services:
       - name: MQTT_HOST
         value: "localhost"
   - name: dtc-sim-ui
-    project: VisualSimulation/VisualSimulation.csproj      
+    project: VisualSimulation/VisualSimulation.csproj
   - name: trafficcontrolservice
     project: TrafficcontrolService/TrafficcontrolService.csproj
     env:
