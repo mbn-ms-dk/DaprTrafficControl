@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Dapr.AspNetCore" Version="1.10.0" />
-    <PackageReference Include="Dapr.Client" Version="1.10.0" />
+    <PackageReference Include="Dapr.Client" Version="1.11.0" />
     <PackageReference Include="Dapr.Extensions.Configuration" Version="1.10.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
     <PackageReference Include="RandomNameGeneratorLibrary" Version="1.2.2" />
