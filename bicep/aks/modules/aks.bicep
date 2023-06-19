@@ -184,6 +184,8 @@ param SystemPoolType string = 'CostOptimised'
 @description('A custom system pool spec')
 param SystemPoolCustomPreset object = {}
 
+@description('Enable the Azure Policy addon')
+param azurepolicy string = ''
 
 resource aks_law 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing =  { 
   name: workspaceName
@@ -244,6 +246,12 @@ var systemPoolPresets = {
 var agentPoolProfiles = JustUseSystemPool ? array(systemPoolBase) : concat(array(union(systemPoolBase, SystemPoolType=='Custom' && SystemPoolCustomPreset != {} ? SystemPoolCustomPreset : systemPoolPresets[SystemPoolType])))
 
 var aks_addons = union({
+  azurepolicy: {
+    config: {
+      version: !empty(azurepolicy) ? 'v2' : json('null')
+    }
+    enabled: !empty(azurepolicy)
+  }
   azureKeyvaultSecretsProvider: {
     config: {
       enableSecretRotation: 'true'
@@ -418,29 +426,34 @@ resource FastAlertingRole_Aks_Law 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-@description('Diagnostic categories to log')
-param AksDiagCategories array = [
-  'cluster-autoscaler'
-  'kube-controller-manager'
-  'kube-audit-admin'
-  'guard'
-]
 
-resource AksDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' =  if (createLaw && omsagent)  {
-  name: 'aksDiags'
-  scope: aks
+var azurePolicyInitiative = 'Baseline'
+var policySetBaseline = '/providers/Microsoft.Authorization/policySetDefinitions/a8640138-9b0a-4a28-b8cb-1666c838647d'
+var policySetRestrictive = '/providers/Microsoft.Authorization/policySetDefinitions/42b8ef37-b724-4e24-bbc8-7a7708edfe00'
+
+resource aks_policies 'Microsoft.Authorization/policyAssignments@2022-06-01' = if (!empty(azurepolicy)) {
+  name: 'azpol-${azurePolicyInitiative}'
+  location: location
   properties: {
-    workspaceId: aks_law.id
-    logs: [for aksDiagCategory in AksDiagCategories: {
-      category: aksDiagCategory
-      enabled: true
-    }]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
+    policyDefinitionId: azurePolicyInitiative == 'Baseline' ? policySetBaseline : policySetRestrictive
+    parameters: {
+      excludedNamespaces: {
+        value: [
+            'kube-system'
+            'gatekeeper-system'
+            'azure-arc'
+            'cluster-baseline-setting'
+        ]
       }
-    ]
+      effect: {
+        value: azurepolicy
+      }
+    }
+    metadata: {
+      assignedBy: 'Dapr Traffic Control'
+    }
+    displayName: 'Kubernetes cluster pod security ${azurePolicyInitiative} standards for Linux-based workloads'
+    description: 'As per: https://github.com/Azure/azure-policy/blob/master/built-in-policies/policySetDefinitions/Kubernetes/'
   }
 }
 

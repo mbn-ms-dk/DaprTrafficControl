@@ -273,3 +273,18 @@ az group create --name $rg --location $loc
 az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
 ```
 
+
+az group delete -g $rg --yes --no-wait
+
+### aks get oidc issuer url 
+```powershell
+az aks show -n $aks -g $rg --query "oidcIssuerProfile.issuerUrl" -otsv
+```
+
+
+aks get dapr components
+```powershell
+az k8s-extension show --cluster-type managedClusters --cluster-name $aks --resource-group $rg --name dapr --query "extensionInstance.status.extensionInstanceStatus" -otsv
+
+az k8s-extension show --cluster-type managedClusters --cluster-name $aks --resource-group $rg --name dapr
+```

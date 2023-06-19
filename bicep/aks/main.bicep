@@ -45,6 +45,7 @@ module aks 'modules/aks.bicep' = {
     keyVaultAksCSI: true
     defenderForContainers: true
     daprAddon: true
+    daprAddonHA: true
   }
 }
 
@@ -70,6 +71,7 @@ module deploy 'modules/deployapps.bicep' = {
   name: 'deploy-${uniqueString(resourceGroup().id)}'
   params: {
     clusterName: aks.outputs.aksClusterName
+    keyVaultName: kv.outputs.keyVaultName
   }
 }
 
