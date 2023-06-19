@@ -90,7 +90,7 @@ To run locally [dapr](https://docs.dapr.io/getting-started) is required.
 
 ## Install AKS and dapr
 ### [Aks installation](https://docs.dapr.io/operations/hosting/kubernetes/cluster/setup-aks/)
-
+note: setx BICEP_CLI_EXPERIMENTAL_FEATURES Extensibility to enable bicep deploy
 1. Login
 ```shell
 az login
@@ -164,7 +164,7 @@ tye run --dashboard
 ```
 Last argument will open the tye dashboard.
 
-## Deploy to Azure
+## Deploy to AKS
 This project is using Github Actions to deploy
 [https://learn.microsoft.com/en-us/azure/aks/kubernetes-action]
 
@@ -217,8 +217,35 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 & ./get-grafana-password.ps1
 ```
 
-### Use Azure Container apps
+## Use Azure Container apps
 [https://docs.microsoft.com/en-us/azure/container-apps/quickstart-dotnet-azure-container-apps]
+### The bicep strucure
+```mermaid
+graph LR
+    A[main.bicep] 
+    X[main.parameters.json] --> A
+    A --> B[modules]
+    B --> C[container-apps-environment.bicep]
+    B --> D[service-bus.bicep]
+    B --> E[cosmos-db.bicep]
+    B --> F[dapr-components.bicep]
+    B --> G[container-registry.bicep]
+    B --> H[key-vault.bicep]
+    B --> I[container-apps.bicep]
+    I --> J[container-apps]
+    I --> K[secrets]
+    K --> L[app-insights-secrets.bicep]
+    J --> M[mail.bicep]
+    J --> N[mosquitto.bicep]
+    J --> O[trafficsimulation-service.bicep]
+    J --> P[visualsim-service.bicep]
+    J --> Q[trafficcontrol-service.bicep]
+    J --> R[finecollection-service.bicep]
+    J --> S[vehicleregistration-service.bicep]
+    F --> K
+    K --> T[mail-server-secrets.bicep]
+```
+
 1. login
 ```powershell 
 az login
@@ -245,13 +272,4 @@ az group create --name $rg --location $loc
 ```powershell
 az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
 ```
-
-$acr="acrdi2ohuv2juwg6"
-
-az acr build --registry $acr --image "trafficcontrol" --file 'TrafficControlService/Dockerfile' . 
-
-az acr build --registry $acr --image "trafficsimulation" --file 'TrafficSimulationServiceConsole/Dockerfile' . 
-az containerapp update --name 'dtc-trafficsimulation' --resource-group $rg
-
-az iot hub device-identity create --device-id simulation --hub-name iothubdi2ohuv2juwg6
 

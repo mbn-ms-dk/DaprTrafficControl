@@ -13,6 +13,9 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
+@description('The name of the service for the mosquitto service. The name is use as Dapr App ID.')
+param mosquittoServiceName string
+
 // Container Registry & Image
 @description('The name of the container registry.')
 param containerRegistryName string
@@ -20,31 +23,25 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerUserAssignedManagedIdentityId string
 
-@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
-param visualsimulationServiceName string
+@description('The target and dapr port for the mosquitto service.')
+param mosquittoPortNumber int
 
-@description('The target and dapr port for the visualsimulation service.')
-param visualsimulationPortNumber int
-
-@secure()
-@description('The Application Insights Instrumentation.')
-param appInsightsInstrumentationKey string
-
-@description('Application Insights secret name')
-param applicationInsightsSecretName string
+// ------------------
+// RESOURCES
+// ------------------
 
 // ------------------
 // MODULES
 // ------------------
 
-module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
-  name: visualsimulationServiceName
+module buildMosquitto 'br/public:deployment-scripts/build-acr:2.0.1' = {
+  name: mosquittoServiceName
   params: {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'VisualSimulation'
-    imageName: 'visualsimulation'
+    buildWorkingDirectory: 'mosquitto'
+    imageName: 'dtc/mosquitto'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
@@ -53,11 +50,10 @@ module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
 // ------------------
 // RESOURCES
 // ------------------
-
-resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview' = {
-  name: visualsimulationServiceName
+resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+  name: mosquittoServiceName
   location: location
-  tags: union(tags, { containerApp: visualsimulationServiceName })
+  tags: union(tags, { containerApp: mosquittoServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -69,24 +65,19 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
     configuration: {
       activeRevisionsMode: 'single'
       ingress: {
-        external: true
-        targetPort: visualsimulationPortNumber
-        allowInsecure: false
+        external: false
+        targetPort: mosquittoPortNumber
+        exposedPort: mosquittoPortNumber
+        transport: 'tcp'
       }
       dapr: {
-        enabled: false
-        appId: visualsimulationServiceName  
+        enabled: true
+        appId: mosquittoServiceName
         appProtocol: 'http'
-        appPort: visualsimulationPortNumber
+        appPort: mosquittoPortNumber
         logLevel: 'info'
         enableApiLogging: true
       }
-      secrets: [
-        {
-          name: applicationInsightsSecretName
-          value: appInsightsInstrumentationKey
-        }
-      ]
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
@@ -97,18 +88,12 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
     template: {
       containers: [
         {
-          name: visualsimulationServiceName
-          image: buildvisualsimulation.outputs.acrImage
+          name: mosquittoServiceName
+          image: buildMosquitto.outputs.acrImage
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
-          env: [
-            {
-              name: 'ApplicationInsights__InstrumentationKey'
-              secretRef: applicationInsightsSecretName
-            }
-          ]
         }
       ]
       scale: {
@@ -118,9 +103,13 @@ resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview
     }
   }
 }
+
 // ------------------
 // OUTPUTS
 // ------------------
 
-@description('The name of the container app for the visual simulation service.')
-output visualsimulationServiceContainerAppName string = visualsimulationService.name
+@description('The name of the container app for the mosquitto service.')
+output mosquittoServiceContainerAppName string = mosquittoService.name
+
+@description('The endpoint of the mosquitto service.')
+output mosquittoEndpoint string = mosquittoService.properties.configuration.ingress.fqdn
