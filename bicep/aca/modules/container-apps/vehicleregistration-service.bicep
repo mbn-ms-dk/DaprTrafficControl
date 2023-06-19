@@ -13,8 +13,8 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
-@description('The name of the service for the mosquitto service. The name is use as Dapr App ID.')
-param mosquittoServiceName string
+@description('The name of the service for the vehicleregistration service. The name is use as Dapr App ID.')
+param vehicleregistrationServiceName string
 
 // Container Registry & Image
 @description('The name of the container registry.')
@@ -23,25 +23,29 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerUserAssignedManagedIdentityId string
 
-@description('The target and dapr port for the mosquitto service.')
-param mosquittoPortNumber int
+@secure()
+@description('The Application Insights Instrumentation.')
+param appInsightsInstrumentationKey string
 
-// ------------------
-// RESOURCES
-// ------------------
+@description('The target and dapr port for the vehicleregistration service.')
+param vehicleregistrationPortNumber int
+
+@description('Application Insights secret name')
+param applicationInsightsSecretName string
+
 
 // ------------------
 // MODULES
 // ------------------
 
-module buildMosquitto 'br/public:deployment-scripts/build-acr:2.0.1' = {
-  name: mosquittoServiceName
+module buildvehicleregistration 'br/public:deployment-scripts/build-acr:2.0.1' = {
+  name: vehicleregistrationServiceName
   params: {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    buildWorkingDirectory: 'mosquitto'
-    imageName: 'mosquitto'
+    dockerfileDirectory: 'VehicleRegistrationService'
+    imageName: 'dtc/vehicleregistration'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
@@ -50,10 +54,11 @@ module buildMosquitto 'br/public:deployment-scripts/build-acr:2.0.1' = {
 // ------------------
 // RESOURCES
 // ------------------
-resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: mosquittoServiceName
+
+resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+  name: vehicleregistrationServiceName
   location: location
-  tags: union(tags, { containerApp: mosquittoServiceName })
+  tags: union(tags, { containerApp: vehicleregistrationServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -66,18 +71,22 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
       activeRevisionsMode: 'single'
       ingress: {
         external: false
-        targetPort: mosquittoPortNumber
-        exposedPort: mosquittoPortNumber
-        transport: 'tcp'
+        targetPort: vehicleregistrationPortNumber
       }
       dapr: {
         enabled: true
-        appId: mosquittoServiceName
+        appId: vehicleregistrationServiceName
         appProtocol: 'http'
-        appPort: mosquittoPortNumber
+        appPort: vehicleregistrationPortNumber
         logLevel: 'info'
         enableApiLogging: true
       }
+      secrets: [
+        {
+          name: applicationInsightsSecretName
+          value: appInsightsInstrumentationKey
+        }
+      ]
       registries: !empty(containerRegistryName) ? [
         {
           server: '${containerRegistryName}.azurecr.io'
@@ -88,12 +97,18 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
     template: {
       containers: [
         {
-          name: mosquittoServiceName
-          image: buildMosquitto.outputs.acrImage
+          name: vehicleregistrationServiceName
+          image: buildvehicleregistration.outputs.acrImage
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
           }
+          env: [
+            {
+              name: 'ApplicationInsights__InstrumentationKey'
+              secretRef: applicationInsightsSecretName
+            }
+          ]
         }
       ]
       scale: {
@@ -108,8 +123,5 @@ resource mosquittoService 'Microsoft.App/containerApps@2022-06-01-preview' = {
 // OUTPUTS
 // ------------------
 
-@description('The name of the container app for the mosquitto service.')
-output mosquittoServiceContainerAppName string = mosquittoService.name
-
-@description('The endpoint of the mosquitto service.')
-output mosquittoEndpoint string = mosquittoService.properties.configuration.ingress.fqdn
+@description('The name of the container app for the frontend web app service.')
+output vehicleregistrationServiceContainerAppName string = vehicleregistrationService.name

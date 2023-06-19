@@ -13,12 +13,6 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
-@description('The key vault name store secrets')
-param keyVaultName string
-
-@description('The name of the service for the finecollection service. The name is use as Dapr App ID.')
-param finecollectionServiceName string
-
 // Container Registry & Image
 @description('The name of the container registry.')
 param containerRegistryName string
@@ -26,9 +20,11 @@ param containerRegistryName string
 @description('The resource ID of the user assigned managed identity for the container registry to be able to pull images from it.')
 param containerUserAssignedManagedIdentityId string
 
-// Service Bus
-@description('The name of the service bus namespace.')
-param serviceBusName string
+@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
+param visualsimulationServiceName string
+
+@description('The target and dapr port for the visualsimulation service.')
+param visualsimulationPortNumber int
 
 @secure()
 @description('The Application Insights Instrumentation.')
@@ -37,22 +33,18 @@ param appInsightsInstrumentationKey string
 @description('Application Insights secret name')
 param applicationInsightsSecretName string
 
-@description('The target and dapr port for the finecollection service.')
-param finecollectionPortNumber int
-
-
 // ------------------
 // MODULES
 // ------------------
 
-module buildfinecollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
-  name: finecollectionServiceName
+module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
+  name: visualsimulationServiceName
   params: {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'FineCollectionService'
-    imageName: 'finecollection'
+    dockerfileDirectory: 'VisualSimulation'
+    imageName: 'dtc/visualsimulation'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
@@ -62,14 +54,10 @@ module buildfinecollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
 // RESOURCES
 // ------------------
 
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = {
-  name: serviceBusName
-}
-  
-resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' = {
-  name: finecollectionServiceName
+resource visualsimulationService 'Microsoft.App/containerApps@2022-11-01-preview' = {
+  name: visualsimulationServiceName
   location: location
-  tags: union(tags, { containerApp: finecollectionServiceName })
+  tags: union(tags, { containerApp: visualsimulationServiceName })
   identity: {
     type: 'SystemAssigned,UserAssigned'
     userAssignedIdentities: {
@@ -81,14 +69,15 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
     configuration: {
       activeRevisionsMode: 'single'
       ingress: {
-        external: false
-        targetPort: finecollectionPortNumber
+        external: true
+        targetPort: visualsimulationPortNumber
+        allowInsecure: false
       }
       dapr: {
-        enabled: true
-        appId: finecollectionServiceName
+        enabled: false
+        appId: visualsimulationServiceName  
         appProtocol: 'http'
-        appPort: finecollectionPortNumber
+        appPort: visualsimulationPortNumber
         logLevel: 'info'
         enableApiLogging: true
       }
@@ -108,8 +97,8 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
     template: {
       containers: [
         {
-          name: finecollectionServiceName
-          image: buildfinecollection.outputs.acrImage
+          name: visualsimulationServiceName
+          image: buildvisualsimulation.outputs.acrImage
           resources: {
             cpu: json('0.25')
             memory: '0.5Gi'
@@ -129,30 +118,9 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
     }
   }
 }
-
-// Enable consume from servicebus using system managed identity.
-resource finecollectionService_sb_role_assignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  name: guid(resourceGroup().id, finecollectionService.name, '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
-  properties: {
-    principalId: finecollectionService.identity.principalId
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver.
-    principalType: 'ServicePrincipal'
-  } 
-  scope: serviceBusNamespace
-}
-
-//add access tro keyvault
-module kvr 'kv-rbac.bicep' = {
-  name: 'kvrbac-${uniqueString(resourceGroup().id)}'
-  params: {
-    keyVaultName: keyVaultName
-    servicePrincipalId: finecollectionService.identity.principalId
-  }
-}
-
 // ------------------
 // OUTPUTS
 // ------------------
 
-@description('The name of the container app for the frontend web app service.')
-output finecollectionServiceContainerAppName string = finecollectionService.name
+@description('The name of the container app for the visual simulation service.')
+output visualsimulationServiceContainerAppName string = visualsimulationService.name

@@ -18,6 +18,7 @@ param tags object = {
   solution: 'daprtrafficcontrol'
   shortName: 'dtc'
   iac: 'bicep'
+  environment: 'aca'
 }
 
 // Container Apps Env / Log Analytics Workspace / Application Insights
@@ -38,7 +39,7 @@ param secretStoreComponentName string
 
 // Services
 @description('The name of the service for the mosquitto service. The name is use as Dapr App ID.')
-param mosquittoServiceName string
+param mosquittoServiceName string  
 
 @description('The name of the service for the mail service. The name is use as Dapr App ID.')
 param mailServiceName string

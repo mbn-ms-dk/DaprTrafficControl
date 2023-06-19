@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mosquitto
+    version: v1
+  name: mosquitto
+  namespace: dtc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: acrdtc1231.azurecr.io/dtc/mosquitto:v1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: mqtt
+              containerPort: 1883
+              protocol: TCP
+            - name: ws
+              containerPort: 9001
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mosquitto
+  name: mosquitto
+  namespace: dtc
+spec:
+  type: LoadBalancer
+  ports:
+  - name: "mqtt"
+    port: 1883
+    targetPort: 1883
+  - name: "ws"
+    port: 9001
+    targetPort: 9001  
+  selector:
+    app: mosquitto

@@ -76,7 +76,7 @@ module buildtrafficcontrol 'br/public:deployment-scripts/build-acr:2.0.1' = {
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
     dockerfileDirectory: 'TrafficControlService'
-    imageName: 'trafficcontrol'
+    imageName: 'dtc/trafficcontrol'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
