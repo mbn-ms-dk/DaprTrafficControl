@@ -40,7 +40,7 @@ param nodeLabels object = {}
 @allowed(['Linux','Windows'])
 param osType string
 
-@allowed(['Ubuntu','Windows2019','Windows2022'])
+@allowed(['Ubuntu','AzureLinux','Windows2019','Windows2022'])
 param osSKU string
 
 @description('Apply a default sku taint to Windows node pools')

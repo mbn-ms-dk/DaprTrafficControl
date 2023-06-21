@@ -55,7 +55,11 @@ module acr 'modules/container-registry.bicep' = {
     location: location
     tags: tags
     logAnalyticsWorkspaceId: aks_law.outputs.LogAnalyticsId
+    aksClusterName: aks.outputs.aksClusterName
   }
+  dependsOn: [
+    aks
+  ]
 }
 
 module kv 'modules/key-vault.bicep' = {
@@ -63,8 +67,14 @@ module kv 'modules/key-vault.bicep' = {
   params: {
     location: location
     tags: tags
+    keyVaultCreate: true
+    keyVaultAksCSI: true
     logAnalyticsWorkspaceId: aks_law.outputs.LogAnalyticsId
+    aksClusterName: aks.outputs.aksClusterName
   }
+  dependsOn: [
+    aks
+  ]
 }
 
 module deploy 'modules/deployapps.bicep' = {
@@ -72,10 +82,17 @@ module deploy 'modules/deployapps.bicep' = {
   params: {
     clusterName: aks.outputs.aksClusterName
     keyVaultName: kv.outputs.keyVaultName
+    applicationInsightsName: aks_law.outputs.applicationInsightsName
+    applicationInsightsSecretName: 'appinsights-secret'
   }
+  dependsOn: [
+    aks
+    acr
+    kv
+  ]
 }
 
-output aksOidcIssuerUrl string = aks.outputs.aksOidcIssuerUrl
-output aksClusterName string = aks.outputs.aksClusterName
-output aksAcrName string = acr.outputs.containerRegistryName
-output keyVaultName string = kv.outputs.keyVaultName
+// output aksOidcIssuerUrl string = aks.outputs.aksOidcIssuerUrl
+// output aksClusterName string = aks.outputs.aksClusterName
+// output aksAcrName string = acr.outputs.containerRegistryName
+// output keyVaultName string = kv.outputs.keyVaultName

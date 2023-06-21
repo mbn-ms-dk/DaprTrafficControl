@@ -112,9 +112,9 @@ param AksDisableLocalAccounts bool = false
 @description('The User Node pool OS')
 param osType string = 'Linux'
 
-@allowed(['Ubuntu','Windows2019','Windows2022'])
+@allowed(['Ubuntu','AzureLinux', 'Windows2019','Windows2022'])
 @description('The User Node pool OS SKU')
-param osSKU string = 'Ubuntu'
+param osSKU string = 'AzureLinux'
 
 @minLength(9)
 @maxLength(18)
@@ -184,8 +184,9 @@ param SystemPoolType string = 'CostOptimised'
 @description('A custom system pool spec')
 param SystemPoolCustomPreset object = {}
 
+@allowed(['Audit', 'Deny', 'Disabled'])
 @description('Enable the Azure Policy addon')
-param azurepolicy string = ''
+param azurepolicy string = 'Audit'
 
 resource aks_law 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing =  { 
   name: workspaceName
@@ -197,6 +198,7 @@ var systemPoolBase = {
   count: agentCount
   mode: 'System'
   osType: 'Linux'
+  osSKU: 'AzureLinux'
   maxPods: 30
   type: 'VirtualMachineScaleSets'
   upgradeSettings: {
@@ -457,41 +459,41 @@ resource aks_policies 'Microsoft.Authorization/policyAssignments@2022-06-01' = i
   }
 }
 
-@description('Enable Metric Alerts')
-param createAksMetricAlerts bool = true
+// @description('Enable Metric Alerts')
+// param createAksMetricAlerts bool = true
 
-@allowed([
-  'Short'
-  'Long'
-])
-@description('Which Metric polling frequency model to use')
-param AksMetricAlertMetricFrequencyModel string = 'Long'
+// @allowed([
+//   'Short'
+//   'Long'
+// ])
+// @description('Which Metric polling frequency model to use')
+// param AksMetricAlertMetricFrequencyModel string = 'Long'
 
-var AlertFrequencyLookup = {
-  Short: {
-    evalFrequency: 'PT1M'
-    windowSize: 'PT5M'
-  }
-  Long: {
-    evalFrequency: 'PT15M'
-    windowSize: 'PT1H'
-  }
-}
-var AlertFrequency = AlertFrequencyLookup[AksMetricAlertMetricFrequencyModel]
+// var AlertFrequencyLookup = {
+//   Short: {
+//     evalFrequency: 'PT1M'
+//     windowSize: 'PT5M'
+//   }
+//   Long: {
+//     evalFrequency: 'PT15M'
+//     windowSize: 'PT1H'
+//   }
+// }
+// var AlertFrequency = AlertFrequencyLookup[AksMetricAlertMetricFrequencyModel]
 
-module aksmetricalerts 'aksmetricalerts.bicep' =  if(createLaw) {
-  name: take('${deployment().name}-aksmetricalerts',64)
-  scope: resourceGroup()
-  params: {
-    clusterName: aks.name
-    logAnalyticsWorkspaceName: aks_law.name
-    metricAlertsEnabled: createAksMetricAlerts
-    evalFrequency: AlertFrequency.evalFrequency
-    windowSize: AlertFrequency.windowSize
-    alertSeverity: 'Informational'
-    logAnalyticsWorkspaceLocation: location
-  }
-}
+// module aksmetricalerts 'aksmetricalerts.bicep' =  if(createLaw) {
+//   name: take('${deployment().name}-aksmetricalerts',64)
+//   scope: resourceGroup()
+//   params: {
+//     clusterName: aks.name
+//     logAnalyticsWorkspaceName: aks_law.name
+//     metricAlertsEnabled: createAksMetricAlerts
+//     evalFrequency: AlertFrequency.evalFrequency
+//     windowSize: AlertFrequency.windowSize
+//     alertSeverity: 'Informational'
+//     logAnalyticsWorkspaceLocation: location
+//   }
+// }
 
 
 

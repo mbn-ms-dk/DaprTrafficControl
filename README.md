@@ -281,10 +281,11 @@ az group delete -g $rg --yes --no-wait
 az aks show -n $aks -g $rg --query "oidcIssuerProfile.issuerUrl" -otsv
 ```
 
-
-aks get dapr components
+### aks get kubeconfig
 ```powershell
-az k8s-extension show --cluster-type managedClusters --cluster-name $aks --resource-group $rg --name dapr --query "extensionInstance.status.extensionInstanceStatus" -otsv
-
-az k8s-extension show --cluster-type managedClusters --cluster-name $aks --resource-group $rg --name dapr
+az aks get-credentials -n $aks -g $rg
+```
+### aks set default namespace for kubectl
+```powershell
+kubectl config set-context --current --namespace=dtc
 ```
