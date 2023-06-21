@@ -61,7 +61,7 @@ resource coreService_zipkin 'core/Service@v1' = {
     ports: [
       {
         port: 9411
-        targetPort: '9411'
+        targetPort: 9411
         protocol: 'TCP'
         name: 'zipkin'
       }

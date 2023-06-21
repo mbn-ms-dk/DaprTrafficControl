@@ -32,6 +32,20 @@ resource aks_law 'Microsoft.OperationalInsights/workspaces@2022-10-01' =  {
   )
 }
 
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'app-${uniqueString(resourceGroup().id)}'
+  location: location
+  tags: tags
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: aks_law.id
+  }
+}
+
+
 output LogAnalyticsName string = aks_law.name
 output LogAnalyticsGuid string = aks_law.properties.customerId
 output LogAnalyticsId string = aks_law.id
+@description('The name of the application insights.')
+output applicationInsightsName string  = applicationInsights.name

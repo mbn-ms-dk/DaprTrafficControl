@@ -273,3 +273,19 @@ az group create --name $rg --location $loc
 az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
 ```
 
+
+az group delete -g $rg --yes --no-wait
+
+### aks get oidc issuer url 
+```powershell
+az aks show -n $aks -g $rg --query "oidcIssuerProfile.issuerUrl" -otsv
+```
+
+### aks get kubeconfig
+```powershell
+az aks get-credentials -n $aks -g $rg
+```
+### aks set default namespace for kubectl
+```powershell
+kubectl config set-context --current --namespace=dtc
+```

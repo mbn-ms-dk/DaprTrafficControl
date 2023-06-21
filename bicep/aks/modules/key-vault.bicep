@@ -50,25 +50,25 @@ resource kv 'Microsoft.KeyVault/vaults@2023-02-01' = {
   }
 }
 
-resource kvDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
-  name: 'kvDiags'
-  scope: kv
-  properties: {
-    workspaceId: logAnalyticsWorkspaceId
-    logs: [
-      {
-        category: 'AuditEvent'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
+// resource kvDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
+//   name: 'kvDiags'
+//   scope: kv
+//   properties: {
+//     workspaceId: logAnalyticsWorkspaceId
+//     logs: [
+//       {
+//         category: 'AuditEvent'
+//         enabled: true
+//       }
+//     ]
+//     metrics: [
+//       {
+//         category: 'AllMetrics'
+//         enabled: true
+//       }
+//     ]
+//   }
+// }
 
 @description('The principal ID of the user or service principal that requires access to the Key Vault.')
 param keyVaultOfficerRolePrincipalId string = ''
@@ -79,6 +79,10 @@ var keyVaultOfficerRolePrincipalIds = [
 @description('Parsing an array with union ensures that duplicates are removed, which is great when dealing with highly conditional elements')
 var rbacSecretUserSps = [
   keyVaultAksCSI ? aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.objectId : ''
+]
+
+var rbacadminUserSps = [
+  '2f6b4e5f-aa31-4446-b0d4-045883ff2ce9'
 ]
 
 @description('A seperate module is used for RBAC to avoid delaying the KeyVault creation and causing a circular reference.')
@@ -95,6 +99,7 @@ module kvRbac 'keyvaultrbac.bicep' = if (keyVaultCreate) {
     //users
     rbacSecretOfficerUsers: !empty(keyVaultOfficerRolePrincipalId) ? keyVaultOfficerRolePrincipalIds : []
     rbacCertOfficerUsers: !empty(keyVaultOfficerRolePrincipalId) && false ? keyVaultOfficerRolePrincipalIds : []
+    rbacAdminUsers: rbacadminUserSps
   }
 }
 

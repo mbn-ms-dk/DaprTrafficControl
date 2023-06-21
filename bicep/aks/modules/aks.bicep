@@ -112,9 +112,9 @@ param AksDisableLocalAccounts bool = false
 @description('The User Node pool OS')
 param osType string = 'Linux'
 
-@allowed(['Ubuntu','Windows2019','Windows2022'])
+@allowed(['Ubuntu','AzureLinux', 'Windows2019','Windows2022'])
 @description('The User Node pool OS SKU')
-param osSKU string = 'Ubuntu'
+param osSKU string = 'AzureLinux'
 
 @minLength(9)
 @maxLength(18)
@@ -184,6 +184,9 @@ param SystemPoolType string = 'CostOptimised'
 @description('A custom system pool spec')
 param SystemPoolCustomPreset object = {}
 
+@allowed(['Audit', 'Deny', 'Disabled'])
+@description('Enable the Azure Policy addon')
+param azurepolicy string = 'Audit'
 
 resource aks_law 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing =  { 
   name: workspaceName
@@ -195,6 +198,7 @@ var systemPoolBase = {
   count: agentCount
   mode: 'System'
   osType: 'Linux'
+  osSKU: 'AzureLinux'
   maxPods: 30
   type: 'VirtualMachineScaleSets'
   upgradeSettings: {
@@ -244,6 +248,12 @@ var systemPoolPresets = {
 var agentPoolProfiles = JustUseSystemPool ? array(systemPoolBase) : concat(array(union(systemPoolBase, SystemPoolType=='Custom' && SystemPoolCustomPreset != {} ? SystemPoolCustomPreset : systemPoolPresets[SystemPoolType])))
 
 var aks_addons = union({
+  azurepolicy: {
+    config: {
+      version: !empty(azurepolicy) ? 'v2' : json('null')
+    }
+    enabled: !empty(azurepolicy)
+  }
   azureKeyvaultSecretsProvider: {
     config: {
       enableSecretRotation: 'true'
@@ -418,67 +428,72 @@ resource FastAlertingRole_Aks_Law 'Microsoft.Authorization/roleAssignments@2022-
   }
 }
 
-@description('Diagnostic categories to log')
-param AksDiagCategories array = [
-  'cluster-autoscaler'
-  'kube-controller-manager'
-  'kube-audit-admin'
-  'guard'
-]
 
-resource AksDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' =  if (createLaw && omsagent)  {
-  name: 'aksDiags'
-  scope: aks
+var azurePolicyInitiative = 'Baseline'
+var policySetBaseline = '/providers/Microsoft.Authorization/policySetDefinitions/a8640138-9b0a-4a28-b8cb-1666c838647d'
+var policySetRestrictive = '/providers/Microsoft.Authorization/policySetDefinitions/42b8ef37-b724-4e24-bbc8-7a7708edfe00'
+
+resource aks_policies 'Microsoft.Authorization/policyAssignments@2022-06-01' = if (!empty(azurepolicy)) {
+  name: 'azpol-${azurePolicyInitiative}'
+  location: location
   properties: {
-    workspaceId: aks_law.id
-    logs: [for aksDiagCategory in AksDiagCategories: {
-      category: aksDiagCategory
-      enabled: true
-    }]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
+    policyDefinitionId: azurePolicyInitiative == 'Baseline' ? policySetBaseline : policySetRestrictive
+    parameters: {
+      excludedNamespaces: {
+        value: [
+            'kube-system'
+            'gatekeeper-system'
+            'azure-arc'
+            'cluster-baseline-setting'
+        ]
       }
-    ]
+      effect: {
+        value: azurepolicy
+      }
+    }
+    metadata: {
+      assignedBy: 'Dapr Traffic Control'
+    }
+    displayName: 'Kubernetes cluster pod security ${azurePolicyInitiative} standards for Linux-based workloads'
+    description: 'As per: https://github.com/Azure/azure-policy/blob/master/built-in-policies/policySetDefinitions/Kubernetes/'
   }
 }
 
-@description('Enable Metric Alerts')
-param createAksMetricAlerts bool = true
+// @description('Enable Metric Alerts')
+// param createAksMetricAlerts bool = true
 
-@allowed([
-  'Short'
-  'Long'
-])
-@description('Which Metric polling frequency model to use')
-param AksMetricAlertMetricFrequencyModel string = 'Long'
+// @allowed([
+//   'Short'
+//   'Long'
+// ])
+// @description('Which Metric polling frequency model to use')
+// param AksMetricAlertMetricFrequencyModel string = 'Long'
 
-var AlertFrequencyLookup = {
-  Short: {
-    evalFrequency: 'PT1M'
-    windowSize: 'PT5M'
-  }
-  Long: {
-    evalFrequency: 'PT15M'
-    windowSize: 'PT1H'
-  }
-}
-var AlertFrequency = AlertFrequencyLookup[AksMetricAlertMetricFrequencyModel]
+// var AlertFrequencyLookup = {
+//   Short: {
+//     evalFrequency: 'PT1M'
+//     windowSize: 'PT5M'
+//   }
+//   Long: {
+//     evalFrequency: 'PT15M'
+//     windowSize: 'PT1H'
+//   }
+// }
+// var AlertFrequency = AlertFrequencyLookup[AksMetricAlertMetricFrequencyModel]
 
-module aksmetricalerts 'aksmetricalerts.bicep' =  if(createLaw) {
-  name: take('${deployment().name}-aksmetricalerts',64)
-  scope: resourceGroup()
-  params: {
-    clusterName: aks.name
-    logAnalyticsWorkspaceName: aks_law.name
-    metricAlertsEnabled: createAksMetricAlerts
-    evalFrequency: AlertFrequency.evalFrequency
-    windowSize: AlertFrequency.windowSize
-    alertSeverity: 'Informational'
-    logAnalyticsWorkspaceLocation: location
-  }
-}
+// module aksmetricalerts 'aksmetricalerts.bicep' =  if(createLaw) {
+//   name: take('${deployment().name}-aksmetricalerts',64)
+//   scope: resourceGroup()
+//   params: {
+//     clusterName: aks.name
+//     logAnalyticsWorkspaceName: aks_law.name
+//     metricAlertsEnabled: createAksMetricAlerts
+//     evalFrequency: AlertFrequency.evalFrequency
+//     windowSize: AlertFrequency.windowSize
+//     alertSeverity: 'Informational'
+//     logAnalyticsWorkspaceLocation: location
+//   }
+// }
 
 
 

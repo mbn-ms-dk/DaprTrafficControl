@@ -33,7 +33,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' exi
 }
 
 resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: 'acr-${uniqueString(resourceGroup().id)}'
+  name: 'acr${uniqueString(resourceGroup().id)}'
   location: location
   tags: tags
   sku: {
@@ -44,30 +44,30 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   }
 }
 
-resource acrDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(registries_sku)) {
-  name: 'acrDiags'
-  scope: acr
-  properties: {
-    workspaceId:logAnalyticsWorkspaceId
-    logs: [
-      {
-        category: 'ContainerRegistryRepositoryEvents'
-        enabled: true
-      }
-      {
-        category: 'ContainerRegistryLoginEvents'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-        timeGrain: 'PT1M'
-      }
-    ]
-  }
-}
+// resource acrDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(registries_sku)) {
+//   name: 'acrDiags'
+//   scope: acr
+//   properties: {
+//     workspaceId:logAnalyticsWorkspaceId
+//     logs: [
+//       {
+//         category: 'ContainerRegistryRepositoryEvents'
+//         enabled: true
+//       }
+//       {
+//         category: 'ContainerRegistryLoginEvents'
+//         enabled: true
+//       }
+//     ]
+//     metrics: [
+//       {
+//         category: 'AllMetrics'
+//         enabled: true
+//         timeGrain: 'PT1M'
+//       }
+//     ]
+//   }
+// }
 
 var AcrPullRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
 var KubeletObjectId = any(aks.properties.identityProfile.kubeletidentity).objectId
