@@ -4,21 +4,13 @@ metadata:
   name: pubsub
   namespace: dtc
 spec:
-  type: pubsub.rabbitmq
+  type: pubsub.azure.servicebus
   version: v1
   metadata:
-  - name: connectionString
+  - name: namespaceName
     value: "amqp://rabbitmq:5672"
-  - name: durable
+  - name: consumerID
     value: "false"
-  - name: deletedWhenUnused
-    value: "false"
-  - name: autoAck
-    value: "false"
-  - name: reconnectWait
-    value: "0"
-  - name: concurrency
-    value: parallel
 scopes:
   - trafficcontrolservice
   - finecollectionservice

@@ -1,0 +1,23 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: azure-sync
+  namespace: dtc
+spec:
+  provider: azure                             
+  secretObjects:                              # [OPTIONAL] SecretObjects defines the desired state of synced Kubernetes secret objects
+    - secretName: appinsights-secret
+      type: Opaque
+      data:
+      - key: appinsights-connectionstring                           # data field to populate
+        objectName: appinsights-connectionstring                        # name of the mounted content to sync; this could be the object name or the object alias
+    - secretName: smtp-user
+      type: Opaque
+      data: 
+      - key: smtp.user                           # data field to populate
+        objectName: smtp.user
+    - secretName: smtp-password
+      type: Opaque
+      data:    
+      - key: smtp.password                           # data field to populate
+        objectName: smtp.password                        # name of the mounted content to sync; this could be the object name or the object alias

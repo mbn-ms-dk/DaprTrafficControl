@@ -1,6 +1,9 @@
 @secure()
 param kubeConfig string
 
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
   kubeConfig: kubeConfig
@@ -9,7 +12,7 @@ import 'kubernetes@1.0.0' with {
 resource daprIoComponent_sendmail 'dapr.io/Component@v1alpha1' = {
   metadata: {
     name: 'sendmail'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
   }
   spec: {
     type: 'bindings.smtp'
@@ -27,14 +30,14 @@ resource daprIoComponent_sendmail 'dapr.io/Component@v1alpha1' = {
         name: 'user'
         secretKeyRef: {
           name: 'trafficcontrol-secrets'
-          key: 'smtp.user'
+          key: 'smtp-user'
         }
       }
       {
         name: 'password'
         secretKeyRef: {
           name: 'trafficcontrol-secrets'
-          key: 'smtp.password'
+          key: 'smtp-password'
         }
       }
       {

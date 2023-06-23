@@ -6,6 +6,9 @@ targetScope = 'resourceGroup'
 @secure()
 param kubeConfig string
 
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
   kubeConfig: kubeConfig
@@ -13,9 +16,9 @@ import 'kubernetes@1.0.0' with {
 
 resource coreNamespace_dtc 'core/Namespace@v1' = {
   metadata: {
-    name: 'dtc'
+    name: serviceAccountNameSpace
     labels: {
-      name: 'dtc'
+      name: serviceAccountNameSpace
     }
   }
 }

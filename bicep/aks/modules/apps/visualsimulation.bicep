@@ -1,7 +1,15 @@
+targetScope = 'resourceGroup'
+
+// ------------------
+//    PARAMETERS
+// ------------------
 param kubeConfig string
 
 @description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
 param visualsimulationServiceName string
+
+@description('The target and dapr port for the visualsimulation service.')
+param visualsimulationPortNumber int
 
 @description('The location where the resources will be created.')
 param location string = resourceGroup().location
@@ -13,6 +21,9 @@ param containerRegistryName string
 @description('Application Insights secret name')
 param applicationInsightsSecretName string
 
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
   name: visualsimulationServiceName
   params: {
@@ -20,7 +31,7 @@ module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
     dockerfileDirectory: 'VisualSimulation'
-    imageName: 'dtc/visualsimulation'
+    imageName: '${serviceAccountNameSpace}/visualsimulation'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
@@ -38,7 +49,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
       version: 'v1'
     }
     name: visualsimulationServiceName
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
   }
   spec: {
     replicas: 1
@@ -54,7 +65,14 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
       metadata: {
         labels: {
           app: visualsimulationServiceName
-        }
+          }
+          annotations: {
+            'dapr.io/enabled': 'false'
+            'dapr.io/app-id': visualsimulationServiceName
+            'dapr.io/app-port': '${visualsimulationPortNumber}'
+            'dapr.io/app-protocol': 'http'
+            'dapr.io/enableApiLogging': 'true'
+          }
       }
       spec: {
         containers: [
@@ -75,11 +93,30 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             ]
             ports: [
               {
-                containerPort: 5123
+                containerPort: visualsimulationPortNumber
+              }
+            ]
+            volumeMounts: [
+              {
+              name: 'secrets-store01-inline'
+              mountPath: 'mnt/secrets-store'
+              readOnly: true
               }
             ]
           }
         ]
+        volumes: [
+          {
+          name: 'secrets-store01-inline'
+          csi: {
+            driver: 'secrets-store.csi.k8s.io'
+            readOnly: true
+            volumeAttributes: {
+              secretProviderClass: 'azure-sync'
+            }
+          }
+        } 
+      ]        
       }
     }
   }
@@ -88,22 +125,22 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
 resource coreService_uisim 'core/Service@v1' = {
   metadata: {
     labels: {
-      app: 'uisim'
+      app: visualsimulationServiceName
     }
-    name: 'uisim'
-    namespace: 'dtc'
+    name: visualsimulationServiceName
+    namespace: serviceAccountNameSpace
   }
   spec: {
     type: 'LoadBalancer'
     ports: [
       {
         name: 'web'
-        port: 5123
-        targetPort: 5123
+        port: visualsimulationPortNumber
+        targetPort: visualsimulationPortNumber
       }
     ]
     selector: {
-      app: 'uisim'
+      app: visualsimulationServiceName
     }
   }
 }

@@ -148,6 +148,13 @@ param JustUseSystemPool bool = false
 @description('Enables the ContainerLogsV2 table to be of type Basic')
 param containerLogsV2BasicLogs bool = false
 
+@description('Aks workload identity service account name')
+param serviceAccountName string
+
+
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 
 param AutoscaleProfile object = {
   'balance-similar-node-groups': 'true'
@@ -332,7 +339,26 @@ var aksProperties = union({
 defenderForContainers && createLaw  ? azureDefenderSecurityProfile : {}
 )
 
-var dnsPrefix = 'dtc-dns'
+resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: 'aksWlIdentity-${uniqueString(resourceGroup().id)}'
+  location: location
+  tags: tags
+
+  resource fedCreds 'federatedIdentityCredentials' = {
+    name: 'fedCreds-${uniqueString(resourceGroup().id)}'
+    properties: {
+      audiences: ['api://AzureADTokenExchange']
+      issuer: oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
+      subject: 'system:serviceaccount:${serviceAccountNameSpace}:${serviceAccountName}'
+    }
+  }
+}
+
+output appIdentityClientId string = appIdentity.properties.clientId
+output appIdentityPrincipalId string = appIdentity.properties.principalId
+output appIdentityId string = appIdentity.id
+
+var dnsPrefix = '${serviceAccountNameSpace}-dns'
 resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
   name: 'aks${uniqueString(resourceGroup().id)}'
   location: location
@@ -342,7 +368,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
     tier: 'Free'
   }
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${appIdentity.id}': {}
+  }
   }
   properties: aksProperties
 }
@@ -363,14 +392,6 @@ module userNodePool 'aksagentpool.bicep' = if (!JustUseSystemPool){
     availabilityZones: availabilityZones
   }
 }
-
-@description('This output can be directly leveraged when creating a ManagedId Federated Identity')
-output aksOidcFedIdentityProperties object = {
-  issuer: oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
-  audiences: ['api://AzureADTokenExchange']
-  subject: 'system:serviceaccount:ns:svcaccount'
-}
-
 
 // for AAD Integrated Cluster using 'enableAzureRBAC', add Cluster admin to the current user!
 var buildInAKSRBACClusterAdmin = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b1ff04bb-8a4e-4dc4-8eb5-8693973ce19b')
@@ -505,3 +526,4 @@ output aksClusterName string = aks.name
 output aksOidcIssuerUrl string = oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
 output userNodePoolName string = nodePoolName
 output systemNodePoolName string = JustUseSystemPool ? nodePoolName : 'npsystem'
+output kvIdentityClientId string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.clientId
