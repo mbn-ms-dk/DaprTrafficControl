@@ -1,15 +1,20 @@
 apiVersion: dapr.io/v1alpha1
 kind: Component
 metadata:
-  name: statestore
-  namespace: dtc
+  name: <NAME>
 spec:
-  type: state.redis
+  type: state.azure.cosmosdb
   version: v1
   metadata:
-  - name: redisHost
-    value: "redis:6379"
+  - name: url
+    value: <REPLACE-WITH-URL>
+  - name: masterKey
+    value: <REPLACE-WITH-MASTER-KEY>
+  - name: database
+    value: <REPLACE-WITH-DATABASE>
+  - name: collection
+    value: <REPLACE-WITH-COLLECTION>
   - name: actorStateStore
-    value: "true"
+    value: true
 scopes:
   - trafficcontrolservice

@@ -10,9 +10,6 @@ param location string = resourceGroup().location
 @description('The tags to be assigned to the created resources.')
 param tags object = {}
 
-@description('The id of the log analytics workspace to use for diagnostics.')
-param logAnalyticsWorkspaceId string = ''
-
 @description('The name of the exissting AKS cluster to integrate with the KeyVault')
 param aksClusterName string = ''
 
@@ -43,31 +40,6 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
     adminUserEnabled: true
   }
 }
-
-// resource acrDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(registries_sku)) {
-//   name: 'acrDiags'
-//   scope: acr
-//   properties: {
-//     workspaceId:logAnalyticsWorkspaceId
-//     logs: [
-//       {
-//         category: 'ContainerRegistryRepositoryEvents'
-//         enabled: true
-//       }
-//       {
-//         category: 'ContainerRegistryLoginEvents'
-//         enabled: true
-//       }
-//     ]
-//     metrics: [
-//       {
-//         category: 'AllMetrics'
-//         enabled: true
-//         timeGrain: 'PT1M'
-//       }
-//     ]
-//   }
-// }
 
 var AcrPullRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
 var KubeletObjectId = any(aks.properties.identityProfile.kubeletidentity).objectId

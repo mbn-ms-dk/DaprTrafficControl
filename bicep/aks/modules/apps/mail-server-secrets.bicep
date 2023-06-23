@@ -7,8 +7,6 @@ targetScope = 'resourceGroup'
 @description('The name of the Key Vault.')
 param keyVaultName string
 
-
-
 // @description('The name of the email user')
 // param emailUserSecretName string = '_username'
 

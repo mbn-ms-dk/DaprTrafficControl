@@ -21,8 +21,6 @@ param tags object = {}
 @description('The location where the resources will be created.')
 param location string = resourceGroup().location
 
-param logAnalyticsWorkspaceId string = ''
-
 @description('The name of the exissting AKS cluster to integrate with the KeyVault')
 param aksClusterName string = ''
 
@@ -49,26 +47,6 @@ resource kv 'Microsoft.KeyVault/vaults@2023-02-01' = {
     enablePurgeProtection: keyVaultPurgeProtection ? true : null
   }
 }
-
-// resource kvDiags 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (!empty(logAnalyticsWorkspaceId)) {
-//   name: 'kvDiags'
-//   scope: kv
-//   properties: {
-//     workspaceId: logAnalyticsWorkspaceId
-//     logs: [
-//       {
-//         category: 'AuditEvent'
-//         enabled: true
-//       }
-//     ]
-//     metrics: [
-//       {
-//         category: 'AllMetrics'
-//         enabled: true
-//       }
-//     ]
-//   }
-// }
 
 @description('The principal ID of the user or service principal that requires access to the Key Vault.')
 param keyVaultOfficerRolePrincipalId string = ''

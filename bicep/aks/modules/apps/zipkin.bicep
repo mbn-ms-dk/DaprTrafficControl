@@ -2,6 +2,9 @@
 
 param kubeConfig string
 
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
   kubeConfig: kubeConfig
@@ -10,7 +13,7 @@ import 'kubernetes@1.0.0' with {
 resource appsDeployment_zipkin 'apps/Deployment@v1' = {
   metadata: {
     name: 'zipkin'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
     labels: {
       service: 'zipkin'
     }
@@ -51,7 +54,7 @@ resource appsDeployment_zipkin 'apps/Deployment@v1' = {
 resource coreService_zipkin 'core/Service@v1' = {
   metadata: {
     name: 'zipkin'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
     labels: {
       service: 'zipkin'
     }

@@ -1,6 +1,12 @@
 @secure()
 param kubeConfig string
 
+@description('The name of the service for the mail service. The name is use as Dapr App ID.')
+param mailServiceName string
+
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
   kubeConfig: kubeConfig
@@ -9,24 +15,24 @@ import 'kubernetes@1.0.0' with {
 resource appsDeployment_mailserver 'apps/Deployment@v1' = {
   metadata: {
     labels: {
-      app: 'mailserver'
+      app: mailServiceName
       version: 'v1'
     }
-    name: 'mailserver'
-    namespace: 'dtc'
+    name: mailServiceName
+    namespace: serviceAccountNameSpace
   }
   spec: {
     replicas: 1
     selector: {
       matchLabels: {
-        app: 'mailserver'
+        app: mailServiceName
         version: 'v1'
       }
     }
     template: {
       metadata: {
         labels: {
-          app: 'mailserver'
+          app: mailServiceName
           version: 'v1'
         }
       }
@@ -35,7 +41,7 @@ resource appsDeployment_mailserver 'apps/Deployment@v1' = {
           {
             image: 'maildev/maildev:2.0.5'
             imagePullPolicy: 'IfNotPresent'
-            name: 'mailserver'
+            name: mailServiceName
             ports: [
               {
                 name: 'smtp'
@@ -59,11 +65,11 @@ resource appsDeployment_mailserver 'apps/Deployment@v1' = {
 resource coreService_mailserver 'core/Service@v1' = {
   metadata: {
     labels: {
-      app: 'mailserver'
+      app: mailServiceName
       version: 'v1'
     }
-    name: 'mailserver'
-    namespace: 'dtc'
+    name: mailServiceName
+    namespace: serviceAccountNameSpace
   }
   spec: {
     type: 'LoadBalancer'
@@ -82,7 +88,7 @@ resource coreService_mailserver 'core/Service@v1' = {
       }
     ]
     selector: {
-      app: 'mailserver'
+      app: mailServiceName
       version: 'v1'
     }
   }

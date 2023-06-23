@@ -1,6 +1,9 @@
 @secure()
 param kubeConfig string
 
+@description('Aks workload identity service account name')
+param serviceAccountNameSpace string
+
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
   kubeConfig: kubeConfig
@@ -9,7 +12,7 @@ import 'kubernetes@1.0.0' with {
 resource coreSecret_trafficcontrolSecrets 'core/Secret@v1' = {
   metadata: {
     name: 'trafficcontrol-secrets'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
   }
   type: 'Opaque'
   data: {
@@ -21,7 +24,7 @@ resource coreSecret_trafficcontrolSecrets 'core/Secret@v1' = {
 resource rbacAuthorizationK8sIoRole_secretReader 'rbac.authorization.k8s.io/Role@v1' = {
   metadata: {
     name: 'secret-reader'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
   }
   rules: [
     {
@@ -42,7 +45,7 @@ resource rbacAuthorizationK8sIoRole_secretReader 'rbac.authorization.k8s.io/Role
 resource rbacAuthorizationK8sIoRoleBinding_daprSecretReader 'rbac.authorization.k8s.io/RoleBinding@v1' = {
   metadata: {
     name: 'dapr-secret-reader'
-    namespace: 'dtc'
+    namespace: serviceAccountNameSpace
   }
   subjects: [
     {
