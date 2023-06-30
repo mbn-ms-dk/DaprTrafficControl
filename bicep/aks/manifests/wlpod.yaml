@@ -3,10 +3,13 @@ apiVersion: v1
 metadata:
   name: busybox-secrets-store-inline-user-msi
   namespace: "dtc"
+  labels:
+    azure.workload.identity/use: "true"
 spec:
+  serviceAccountName: dtc-workload-identity-sa
   containers:
     - name: busybox
-      image: k8s.gcr.io/e2e-test-images/busybox:1.29-1
+      image: registry.k8s.io/e2e-test-images/busybox:1.29-1 
       command:
         - "/bin/sleep"
         - "10000"

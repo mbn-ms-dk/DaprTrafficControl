@@ -8,8 +8,7 @@ spec:
   parameters:
     usePodIdentity: "false"
     useVMManagedIdentity: "false"
-    # userAssignedIdentityID: '1cbeec41-be56-4d20-bed3-f57b001dd2a6'
-    clientID: 'c48422b4-88de-491d-8f78-472220f7e621' # 'd8f240b6-ddb1-4495-a5c7-82ce27f33268'
+    clientID: '10cca5dd-9908-44d7-9607-ea17c16cd0fe' 
     keyvaultName: "kv-gktsxdtw62iiq"
     cloudName: ""
     tenantId: "16b3c013-d300-468d-ac64-7eda0820b6d3"

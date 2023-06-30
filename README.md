@@ -6,7 +6,7 @@ and
 
 [https://learn.microsoft.com/en-us/dotnet/architecture/dapr-for-net-developers/]
 
-## Overall architecture
+# Overall architecture
 
 ```mermaid
 graph LR
@@ -55,7 +55,7 @@ graph LR
    style subFcs fill:lightGrey,opacity:0.5;
    style subHlp fill:lightGrey,opacity:0.5;
 ```
-### Sequence
+## Sequence
 
 ```mermaid
 sequenceDiagram 
@@ -78,93 +78,57 @@ sequenceDiagram
     fcs->>smtp: Send fine
 ```
 
-
-To run locally this project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
+This project is using [tye](https://github.com/dotnet/tye) to run locally and deploy to Azure.
 
 ## Prerequisites
 To run locally [dapr](https://docs.dapr.io/getting-started) is required.
 
 ### install dapr locally
 1. Install [dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) (both for running locally and on Azure Kubernetes)
-2. [Initialize}(https://docs.dapr.io/getting-started/install-dapr-selfhost/)
+2. [Initialize](https://docs.dapr.io/getting-started/install-dapr-selfhost/)
 
-## Install AKS and dapr
-### [Aks installation](https://docs.dapr.io/operations/hosting/kubernetes/cluster/setup-aks/)
-note: setx BICEP_CLI_EXPERIMENTAL_FEATURES Extensibility to enable bicep deploy
-1. Login
-```shell
-az login
-```
-2. Set variables
-```shell
-rg="rg-dtc"
-aks="dtcaks"
-loc="northeurope"
-acr="acrdtc1231"
-```
-3. Create resource group
-```shell
-az group create --name $rg --location $loc
-```
-4. Create ACR 
-[https://learn.microsoft.com/en-us/azure/aks/cluster-container-registry-integration?tabs=azure-cli]
-Create ACR
-```shell
-az acr create -n $acr -g $rg --sku basic
-```
-5. Create AKS cluster with ephemeral disk and mariner host and attach acr
-[https://learn.microsoft.com/EN-us/azure/aks/cluster-configuration]
-```shell
-az aks create --name $aks --resource-group $rg -s Standard_DS3_v2 --node-osdisk-type Ephemeral --os-sku mariner --enable-addons http_application_routing --generate-ssh-keys --enable-managed-identity --attach-acr $acr
-```
-6. Get Aks credentials
-```shell
-az aks get-credentials -n $aks -g $rg
-```s
-
-### [Install dapr using AKS Extension](https://docs.dapr.io/developing-applications/integrations/azure/azure-kubernetes-service-extension/)
-1. Install dapr extension
-```shell
-az feature register --namespace "Microsoft.ContainerService" --name "AKS-ExtensionManager"
-az feature register --namespace "Microsoft.ContainerService" --name "AKS-Dapr"
-```
-2. Check status
-```shell
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKS-ExtensionManager')].{Name:name,State:properties.state}"
-az feature list -o table --query "[?contains(name, 'Microsoft.ContainerService/AKS-Dapr')].{Name:name,State:properties.state}"
-```
-3. Next, refresh the registration of the `Microsoft.KubernetesConfiguration` and `Microsoft.ContainerService` resource providers
-```shell
-az provider register --namespace Microsoft.KubernetesConfiguration
-az provider register --namespace Microsoft.ContainerService
-```
-4. Enable the Azure CLI extension for cluster extensions
-Install
-```shell
-az extension add --name k8s-extension
-```
-or update
-```shell
-az extension update --name k8s-extension
-```
-5. Create the extension and install Dapr on your AKS cluster
-After your subscription is registered to use Kubernetes extensions, install dapr
-```shell
-az k8s-extension create --cluster-type managedClusters --cluster-name $aks --resource-group $rg --name myDaprExtension --extension-type Microsoft.Dapr --auto-upgrade-minor-version true
-```
-6. Verify installation
-Confirm dapr control plane is installed
-```shell
-kubectl get pods -n dapr-system
-```
-## Run locally
+### Run locally
 From the root folder run
 ```shell
 tye run --dashboard
 ```
 Last argument will open the tye dashboard.
 
-## Deploy to AKS
+If there are errors in regards to https when running locally, run the following command:
+```shell
+dotnet dev-certs https --trust
+```
+
+## Install AKS and dapr and deploy to AKS using bicep
+note: setx BICEP_CLI_EXPERIMENTAL_FEATURES Extensibility to enable bicep deploy
+1. login
+```powershell 
+az login
+```
+
+2. Set environment variables
+```powershell 
+$rg="rg-dtc"
+$loc="northeurope"
+```
+
+3. Create resource group
+```powershell 
+az group create --name $rg --location $loc
+```
+
+4. Deploy 
+```powershell
+az deployment group create --resource-group $rg --template-file "./bicep/aca/main.bicep" --parameters "./bicep/aca/main.parameters.json"
+```
+
+5. Cleanup
+```powershell
+az group delete -g $rg --yes --no-wait
+```
+
+
+### Deploy to AKS using github actions
 This project is using Github Actions to deploy
 [https://learn.microsoft.com/en-us/azure/aks/kubernetes-action]
 
@@ -190,14 +154,8 @@ Save the output as follows:
 | resource_group | The name of your resource group |
 | cluster_name | The name of your cluster |
 
-### Add observability
-Dapr provides the option to get observability [https://docs.dapr.io/operations/monitoring/]
 
-In this setup we will use [zipkin](https://docs.dapr.io/operations/monitoring/tracing/zipkin/) and [grafana](https://docs.dapr.io/operations/monitoring/metrics/grafana/)
-
-We use [helm](https://learn.microsoft.com/en-us/azure/aks/quickstart-helm?tabs=azure-cli) to install a local grafana (TODO switch to managed)
-
-### Install grafana
+### Install grafana optional 
 Navigate to K8s/observability/grafana folder. (TODO: Use managed grafana)
 
 ```shell
@@ -215,6 +173,20 @@ helm install grafana grafana/grafana -n dapr-monitoring --set persistence.enable
 
 # display Grafana admin password
 & ./get-grafana-password.ps1
+```
+#### AKS helpers
+### aks get oidc issuer url 
+```powershell
+az aks show -n $aks -g $rg --query "oidcIssuerProfile.issuerUrl" -otsv
+```
+
+### aks get kubeconfig
+```powershell
+az aks get-credentials -n $aks -g $rg --admin
+```
+### aks set default namespace for kubectl
+```powershell
+kubectl config set-context --current --namespace=<your-namespace>
 ```
 
 ## Use Azure Container apps
@@ -270,22 +242,11 @@ az group create --name $rg --location $loc
 
 5. Deploy 
 ```powershell
-az deployment group create --resource-group $rg --template-file "./bicep/main.bicep" --parameters "./bicep/main.parameters.json"
+az deployment group create --resource-group $rg --template-file "./bicep/aca/main.bicep" --parameters "./bicep/aca/main.parameters.json"
 ```
 
-
+6. Cleanup
+```powershell
 az group delete -g $rg --yes --no-wait
-
-### aks get oidc issuer url 
-```powershell
-az aks show -n $aks -g $rg --query "oidcIssuerProfile.issuerUrl" -otsv
 ```
 
-### aks get kubeconfig
-```powershell
-az aks get-credentials -n $aks -g $rg
-```
-### aks set default namespace for kubectl
-```powershell
-kubectl config set-context --current --namespace=dtc
-```

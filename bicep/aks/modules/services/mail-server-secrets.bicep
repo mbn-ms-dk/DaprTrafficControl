@@ -7,12 +7,15 @@ targetScope = 'resourceGroup'
 @description('The name of the Key Vault.')
 param keyVaultName string
 
-// @description('The name of the email user')
-// param emailUserSecretName string = '_username'
+@description('Mail server secret username')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerUserSecretsName string
 
-// @secure()
-// @description('The password of the email user')
-// param emailPasswordSecretName string 
+
+@description('Mail server secret password name')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerPasswordSecretsName string
+
 
 // ------------------
 // RESOURCES
@@ -25,9 +28,9 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
 // External Azure storage key secret used by mailserver Service.
 resource mailUserSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
-  name: 'smtp-user'
+  name: mailServerUserSecretsName
   properties: {
-    value: '_username'
+    value: 'bob'
   }
 }
 
@@ -36,7 +39,7 @@ param psSecret string = '${newGuid()}${uniqueString(resourceGroup().id)}'
 
 resource mailPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
-  name: 'smtp-password'
+  name: mailServerPasswordSecretsName
   properties: {
     value: psSecret
   }

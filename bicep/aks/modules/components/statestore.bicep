@@ -16,8 +16,8 @@ param trafficcontrolServiceName string
 @description('Use actors in traffic control service')
 param useActors bool
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+@description('Aks namespace')
+param aksNameSpace string
 
 // ------------------
 // RESOURCES
@@ -34,7 +34,7 @@ import 'kubernetes@1.0.0' with {
 resource daprIoComponent_NAME 'dapr.io/Component@v1alpha1' = {
   metadata: {
     name: 'statestore'
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     type: 'state.azure.cosmosdb'

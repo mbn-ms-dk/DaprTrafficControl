@@ -4,8 +4,8 @@ param kubeConfig string
 @description('The name of the service for the mail service. The name is use as Dapr App ID.')
 param mailServiceName string
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+@description('Aks namespace where the mail service will be deployed.')
+param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
@@ -19,7 +19,7 @@ resource appsDeployment_mailserver 'apps/Deployment@v1' = {
       version: 'v1'
     }
     name: mailServiceName
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     replicas: 1
@@ -69,7 +69,7 @@ resource coreService_mailserver 'core/Service@v1' = {
       version: 'v1'
     }
     name: mailServiceName
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     type: 'LoadBalancer'

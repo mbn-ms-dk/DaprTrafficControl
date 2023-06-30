@@ -1,8 +1,17 @@
 @secure()
 param kubeConfig string
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+@description('Aks namespace')
+param aksNameSpace string
+
+@description('Mail server secret username')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerUserSecretsName string
+
+
+@description('Mail server secret password name')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerPasswordSecretsName string
 
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
@@ -12,7 +21,7 @@ import 'kubernetes@1.0.0' with {
 resource daprIoComponent_sendmail 'dapr.io/Component@v1alpha1' = {
   metadata: {
     name: 'sendmail'
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     type: 'bindings.smtp'
@@ -29,15 +38,15 @@ resource daprIoComponent_sendmail 'dapr.io/Component@v1alpha1' = {
       {
         name: 'user'
         secretKeyRef: {
-          name: 'trafficcontrol-secrets'
-          key: 'smtp-user'
+          name: mailServerUserSecretsName
+          key: 'smtp.user'
         }
       }
       {
         name: 'password'
         secretKeyRef: {
-          name: 'trafficcontrol-secrets'
-          key: 'smtp-password'
+          name: mailServerPasswordSecretsName
+          key: 'smtp.password'
         }
       }
       {

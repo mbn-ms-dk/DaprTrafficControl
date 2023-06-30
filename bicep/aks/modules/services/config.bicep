@@ -1,7 +1,7 @@
 @secure()
 param kubeConfig string
 @description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
@@ -12,7 +12,7 @@ import 'kubernetes@1.0.0' with {
 resource daprIoConfiguration_daprConfig 'dapr.io/Configuration@v1alpha1' = {
   metadata: {
     name: 'daprconfig'
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     tracing: {

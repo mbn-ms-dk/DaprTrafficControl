@@ -64,13 +64,29 @@ param trafficcontrolPortNumber int
 @description('The name of the container registry.')
 param containerRegistryName string
 
-@description('Aks userassigned clientid')
+@description('Aks userassigned client id')
 param aksUserAssignedClientId string
+
+@description('Aks userassigned principal id')
+param aksUserAssignedPrincipalId string
+
 @description('Aks workload identity service account name')
 param serviceAccountName string
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+@description('Aks namespace')
+param aksNameSpace string
+
+@description('Secret Provider Class Name')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param secretProviderClassName string
+
+@description('Mail server secret username')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerUserSecretsName string
+
+@description('Mail server secret password name')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param mailServerPasswordSecretsName string
 
 // ------------------
 //    RESOURCES
@@ -82,56 +98,60 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' exi
 // ------------------
 //    DEPLOYMENT
 // ------------------
-@description('Dapr configuration')
-module dapr_config 'apps/config.bicep' = {
-  name: 'dapr-config-${uniqueString(resourceGroup().id)}'
-  params: {
-    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    serviceAccountNameSpace: serviceAccountNameSpace
-  }
-}
-
 @description('Create namespace for the application')
-module ns 'apps/ns.bicep' = {
+module ns 'services/ns.bicep' = {
   name: 'ns-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
 }
 
-@description('Deploy Workload identity role')
-module workloadIdenityRole 'apps/wi-sa.bicep' = {
-  name: 'wi-sa-${uniqueString(resourceGroup().id)}'
+@description('Dapr configuration')
+module dapr_config 'services/config.bicep' = {
+  name: 'dapr-config-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    userAssignedClientId: aksUserAssignedClientId
-    serviceAccountName: serviceAccountName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
   ]
 }
-// @description('Deploy appinsights binding')
-// module appInsightsBinding 'apps/sa-role.bicep' = {
-//   name: 'appinsights-binding-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-//     serviceAccountNameSpace: serviceAccountNameSpace
-//   }
-//   dependsOn: [
-//     ns
-//   ]
-// }
 
-@description('Deploy secret store')
-module secretstore 'apps/secretstore.bicep' = {
+@description('Deploy Workload identity role')
+module workloadIdenityRole 'services/wi-sa.bicep' = {
+  name: 'wi-sa-${uniqueString(resourceGroup().id)}'
+  params: {
+    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    aksUserAssignedClientId: aksUserAssignedClientId
+    serviceAccountName: serviceAccountName
+    aksNameSpace: aksNameSpace
+  }
+  dependsOn: [
+    ns
+  ]
+}
+
+@description('Deploy Zipkin')
+module zipkin 'apps/zipkin.bicep' = {
+  name: 'zipkin-${uniqueString(resourceGroup().id)}'
+  params: {
+    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    aksNameSpace: aksNameSpace
+  }
+  dependsOn: [
+    ns
+  ]
+}
+
+@description('Deploy dapr secret store')
+module secretstore 'components/secretstore.bicep' = {
   name: 'secretstore-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     keyVaultName: keyVaultName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
@@ -139,10 +159,12 @@ module secretstore 'apps/secretstore.bicep' = {
 } 
 
 @description('Deploy email secrets to secret store - keyvault')
-module mailsecretstore 'apps/mail-server-secrets.bicep' = {
+module mailsecretstore 'services/mail-server-secrets.bicep' = {
   name: 'mailsecretstore-${uniqueString(resourceGroup().id)}'
   params: {
     keyVaultName: keyVaultName
+    mailServerUserSecretsName: mailServerUserSecretsName
+    mailServerPasswordSecretsName: mailServerPasswordSecretsName
   }
   dependsOn: [
     secretstore
@@ -150,7 +172,7 @@ module mailsecretstore 'apps/mail-server-secrets.bicep' = {
 }
 
 @description('Deploy application insights secrets to secret store - keyvault')
-module appinsightssecretstore 'apps/app-insights-secrets.bicep' = {
+module appinsightssecretstore 'services/app-insights-secrets.bicep' = {
   name: 'appinsightssecretstore-${uniqueString(resourceGroup().id)}'
   params: {
     keyVaultName: keyVaultName
@@ -162,55 +184,39 @@ module appinsightssecretstore 'apps/app-insights-secrets.bicep' = {
   ]
 }
 
-@description('Sync kayvault secrets to kubernetes secrets using CSI driver')
-module syncKv 'apps/kvsync.bicep' = {
-  name: 'syncKv-${uniqueString(resourceGroup().id)}'
+// @description('Sync kayvault secrets to kubernetes secrets using CSI driver')
+// module syncKv 'services/kvsync.bicep' = {
+//   name: 'syncKv-${uniqueString(resourceGroup().id)}'
+//   params: {
+//     kubeConfig:  aksUserAssignedPrincipalId//aks.listClusterAdminCredential().kubeconfigs[0].value //base64(aks.properties.identityProfile.kubeletidentity.objectId) or base64(aks.properties.servicePrincipalProfile.clientId)
+//     aksNameSpace: aksNameSpace
+//     secretProviderClassName: secretProviderClassName
+//     aksUserAssignedClientId: aksUserAssignedClientId
+//     keyVaultName: keyVaultName
+//     applicationInsightsSecretName: applicationInsightsSecretName
+//     mailServerUserSecretsName: mailServerUserSecretsName
+//     mailServerPasswordSecretsName: mailServerPasswordSecretsName
+//   }
+//   dependsOn: [
+//     ns
+//   ]
+// }
+
+@description('Deploy test sample pod')
+module testpod 'apps/wlpod.bicep' = {
+  name: 'testpod-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    serviceAccountNameSpace: serviceAccountNameSpace
+    serviceAccountName: serviceAccountName
+    aksNameSpace: aksNameSpace
+    secretProviderClassName: secretProviderClassName
     applicationInsightsSecretName: applicationInsightsSecretName
   }
   dependsOn: [
     ns
+    workloadIdenityRole
   ]
 }
-@description('Deploy Zipkin')
-module zipkin 'apps/zipkin.bicep' = {
-  name: 'zipkin-${uniqueString(resourceGroup().id)}'
-  params: {
-    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    serviceAccountNameSpace: serviceAccountNameSpace
-  }
-  dependsOn: [
-    ns
-  ]
-}
-
-// @description('Deploy email AKS secrets and assign kube secret reader role')
-// module mailsecretsetup 'apps/secrets.bicep' = {
-//   name: 'mailsecretsetup-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-//     serviceAccountNameSpace: serviceAccountNameSpace
-//   }
-//   dependsOn: [
-//     ns
-//   ]
-// }
-
-// @description('Deploy application insights AKS secrets')
-// module appinsightssecretsetup 'apps/aisecret.bicep' = {
-//   name: 'appinsightssecretsetup-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-//     applicationInsightsSecretName: applicationInsightsSecretName
-//     applicationInsightsName: applicationInsightsName
-//     serviceAccountNameSpace: serviceAccountNameSpace
-//   }
-//   dependsOn: [
-//     ns
-//   ]
-// }
 
 @description('Deploy mosquitto service')
 module mosquitto 'apps/mosquitto.bicep' =  if (useMosquitto) {
@@ -220,7 +226,7 @@ module mosquitto 'apps/mosquitto.bicep' =  if (useMosquitto) {
     mosquittoServiceName: mosquittoServiceName
     location: location
     containerRegistryName: containerRegistryName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
@@ -228,11 +234,13 @@ module mosquitto 'apps/mosquitto.bicep' =  if (useMosquitto) {
 }
 
 @description('Deploy email dapr component')
-module maildapr 'apps/email-dapr.bicep' = {
+module maildapr 'components/email-dapr.bicep' = {
   name: 'maildapr-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
+    mailServerUserSecretsName: mailServerUserSecretsName
+    mailServerPasswordSecretsName: mailServerPasswordSecretsName
   }
   dependsOn: [
     ns
@@ -245,7 +253,7 @@ module mailserver 'apps/mailserver.bicep' = {
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     mailServiceName: mailServiceName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
@@ -263,15 +271,17 @@ module visualsimulation 'apps/visualsimulation.bicep' = {
     visualsimulationPortNumber: visualsimulationPortNumber
     containerRegistryName: containerRegistryName
     applicationInsightsSecretName: applicationInsightsSecretName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
+    secretProviderClassName: secretProviderClassName
+    serviceAccountName: serviceAccountName
   }
   dependsOn: [
     ns
   ]
 }
 
-@description('Deploy statestore component')
-module statestore 'apps/statestore.bicep' = {
+@description('Deploy dapr statestore component')
+module statestore 'components/statestore.bicep' = {
   name: 'statestore-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
@@ -280,7 +290,7 @@ module statestore 'apps/statestore.bicep' = {
     cosmosDbDatabaseName: cosmosDbDatabaseName
     trafficcontrolServiceName: trafficcontrolServiceName
     useActors: useActors
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
@@ -288,14 +298,14 @@ module statestore 'apps/statestore.bicep' = {
 }
 
 @description('Deploy pubsub component')
-module pubsub 'apps/pubsub.bicep' = {
+module pubsub 'components/pubsub.bicep' = {
   name: 'pubsub-${uniqueString(resourceGroup().id)}'
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     serviceBusName: serviceBusName
     finecollectionserviceServiceName: finecollectionServiceName
     trafficcontrolserviceServiceName: trafficcontrolServiceName
-    serviceAccountNameSpace: serviceAccountNameSpace
+    aksNameSpace: aksNameSpace
   }
   dependsOn: [
     ns
