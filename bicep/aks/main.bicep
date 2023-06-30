@@ -243,6 +243,7 @@ module deploy 'modules/deployapps.bicep' = {
     aksNameSpace: aksNameSpace
     secretProviderClassName: secretProviderClassName
     aksUserAssignedClientId: aks.outputs.appIdentityClientId
+    aksUserAssignedPrincipalId: aks.outputs.appIdentityPrincipalId
     containerRegistryName: acr.outputs.containerRegistryName
     clusterName: aks.outputs.aksClusterName
     keyVaultName: kv.outputs.keyVaultName
