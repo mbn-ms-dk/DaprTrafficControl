@@ -11,8 +11,8 @@ param location string = resourceGroup().location
 @description('The name of the container registry.')
 param containerRegistryName string
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+@description('Aks namespace')
+param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
   namespace: 'default'
@@ -39,7 +39,7 @@ resource appsDeployment_mosquitto 'apps/Deployment@v1' = {
       version: 'v1'
     }
     name: mosquittoServiceName
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     replicas: 1
@@ -88,7 +88,7 @@ resource coreService_mosquitto 'core/Service@v1' = {
       app: mosquittoServiceName
     }
     name: mosquittoServiceName
-    namespace:serviceAccountNameSpace
+    namespace:aksNameSpace
   }
   spec: {
     type: 'LoadBalancer'

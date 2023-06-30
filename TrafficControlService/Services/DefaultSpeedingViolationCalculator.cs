@@ -11,11 +11,13 @@ public class DefaultSpeedingViolationCalculator : ISpeedingViolationCalculator {
         this.legalCorrectionInKmh = legalCorrectionInKmh;
     }
 
+    //method to calculate the speeding violation in km/h
     public int DetermineSpeedingViolationInKmh(DateTime entryTime, DateTime exitTime) {
-        double elapsedMinutes = exitTime.Subtract(entryTime).TotalSeconds; //1 sec == 1 min in simulation
-        double avgSpeedInKmh = Math.Round((sectionLengthInKm / elapsedMinutes) * 60);
-        int violation = Convert.ToInt32(avgSpeedInKmh - maxAllowedSpeedInKmh - legalCorrectionInKmh);
-        return violation;
+        var timeDifference = exitTime - entryTime;
+        var timeDifferenceInHours = timeDifference.TotalHours;
+        var averageSpeedInKmh = sectionLengthInKm / timeDifferenceInHours;
+        var speedingViolationInKmh = averageSpeedInKmh - maxAllowedSpeedInKmh - legalCorrectionInKmh;
+        return (int) Math.Round(speedingViolationInKmh);
     }
 
     public string GetRoadId() {

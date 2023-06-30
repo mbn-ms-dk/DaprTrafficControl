@@ -21,8 +21,15 @@ param containerRegistryName string
 @description('Application Insights secret name')
 param applicationInsightsSecretName string
 
+@description('Aks namespace')
+param aksNameSpace string
+
 @description('Aks workload identity service account name')
-param serviceAccountNameSpace string
+param serviceAccountName string
+
+@description('Secret Provider Class Name')
+#disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
+param secretProviderClassName string
 
 module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
   name: visualsimulationServiceName
@@ -31,25 +38,25 @@ module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
     dockerfileDirectory: 'VisualSimulation'
-    imageName: '${serviceAccountNameSpace}/visualsimulation'
+    imageName: '${aksNameSpace}/visualsimulation'
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
-}
+} 
 
 resource appsDeployment_uisim 'apps/Deployment@v1' = {
   metadata: {
+    name: visualsimulationServiceName
+    namespace: aksNameSpace
     labels: {
       app: visualsimulationServiceName
-      version: 'v1'
+      'azure.workload.identity/use': 'true'
     }
-    name: visualsimulationServiceName
-    namespace: serviceAccountNameSpace
   }
   spec: {
     replicas: 1
@@ -75,11 +82,12 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
           }
       }
       spec: {
+        serviceAccountName: serviceAccountName
         containers: [
           {
             name: visualsimulationServiceName
             image: buildvisualsimulation.outputs.acrImage
-            imagePullPolicy: 'IfNotPresent'
+            imagePullPolicy: 'Always'
             env: [
               {
                 name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -112,7 +120,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             driver: 'secrets-store.csi.k8s.io'
             readOnly: true
             volumeAttributes: {
-              secretProviderClass: 'azure-sync'
+              secretProviderClass: secretProviderClassName
             }
           }
         } 
@@ -128,7 +136,7 @@ resource coreService_uisim 'core/Service@v1' = {
       app: visualsimulationServiceName
     }
     name: visualsimulationServiceName
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
   }
   spec: {
     type: 'LoadBalancer'

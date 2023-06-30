@@ -43,6 +43,8 @@ services:
     env:
       - name: MQTT_HOST
         value: "localhost"
+      - name: USE_MOSQUITTO
+        value: "true"
   - name: dtc-sim-ui
     project: VisualSimulation/VisualSimulation.csproj
   - name: trafficcontrolservice

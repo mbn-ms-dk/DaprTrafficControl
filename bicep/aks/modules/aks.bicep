@@ -37,6 +37,9 @@ param keyVaultAksCSI bool = false
 @description('Create, and use a new Log Analytics workspace for AKS logs')
 param omsagent bool = false
 
+@description('Enable Azure Montior/Prometheus')
+param enableMonitoring bool = false
+
 @description('Rotation poll interval for the AKS KV CSI provider')
 param keyVaultAksCSIPollInterval string = '2m'
 
@@ -137,7 +140,7 @@ param dnsServiceIP string = '172.10.0.10'
 param dockerBridgeCidr string = '172.17.0.1/16'
 
 @description('The principal ID to assign the AKS admin role.')
-param adminPrincipalId string = '2f6b4e5f-aa31-4446-b0d4-045883ff2ce9'
+param adminPrincipalId string 
 
 @description('Enable Microsoft Defender for Containers (preview)')
 param defenderForContainers bool = false
@@ -151,11 +154,12 @@ param containerLogsV2BasicLogs bool = false
 @description('Aks workload identity service account name')
 param serviceAccountName string
 
+@description('Aks namespace')
+param aksNameSpace string
+@description('enable Windows node logs')
+param enableWindowsRecordingRules bool = false
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
-
-
+@description('Autoscalle profile')
 param AutoscaleProfile object = {
   'balance-similar-node-groups': 'true'
   expander: 'random'
@@ -195,10 +199,16 @@ param SystemPoolCustomPreset object = {}
 @description('Enable the Azure Policy addon')
 param azurepolicy string = 'Audit'
 
+// ------------------
+//    EXISTING RESOURCES
+// ------------------
 resource aks_law 'Microsoft.OperationalInsights/workspaces@2022-10-01' existing =  { 
   name: workspaceName
 }
 
+// ------------------
+//    VARIABLES
+// ------------------
 var systemPoolBase = {
   name:  JustUseSystemPool ? nodePoolName : 'npsystem'
   vmSize: agentVMSize
@@ -276,7 +286,7 @@ var aks_addons = union({
     }
   }}:{})
 
-  @description('Needing to seperately declare and union this because of https://github.com/Azure/AKS/issues/2774')
+@description('Needing to seperately declare and union this because of https://github.com/Azure/AKS/issues/2774')
 var azureDefenderSecurityProfile = {
   securityProfile : {
     defender: {
@@ -309,6 +319,13 @@ var aksProperties = union({
     dockerBridgeCidr: dockerBridgeCidr
     outboundType: aksOutboundTrafficType
   }
+  // identityProfile: {
+  //   kubeletidentity: {
+  //     resourceId: kubeletIdentity.id
+  //     clientId: kubeletIdentity.properties.clientId
+  //     objectId: kubeletIdentity.properties.principalId
+  //   }
+  // }
   disableLocalAccounts: AksDisableLocalAccounts && enable_aad
   autoUpgradeProfile: {upgradeChannel: upgradeChannel}
   addonProfiles: aks_addons
@@ -339,8 +356,14 @@ var aksProperties = union({
 defenderForContainers && createLaw  ? azureDefenderSecurityProfile : {}
 )
 
+var dnsPrefix = '${aksNameSpace}-dns'
+
+
+// ------------------
+//    RESOURCES
+// ------------------
 resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: 'aksWlIdentity-${uniqueString(resourceGroup().id)}'
+  name: 'aksWlIdentity-${aksNameSpace}'
   location: location
   tags: tags
 
@@ -349,16 +372,11 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
     properties: {
       audiences: ['api://AzureADTokenExchange']
       issuer: oidcIssuer ? aks.properties.oidcIssuerProfile.issuerURL : ''
-      subject: 'system:serviceaccount:${serviceAccountNameSpace}:${serviceAccountName}'
+      subject: 'system:serviceaccount:${aksNameSpace}:${serviceAccountName}'
     }
   }
 }
 
-output appIdentityClientId string = appIdentity.properties.clientId
-output appIdentityPrincipalId string = appIdentity.properties.principalId
-output appIdentityId string = appIdentity.id
-
-var dnsPrefix = '${serviceAccountNameSpace}-dns'
 resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
   name: 'aks${uniqueString(resourceGroup().id)}'
   location: location
@@ -377,7 +395,7 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
 }
 
 module userNodePool 'aksagentpool.bicep' = if (!JustUseSystemPool){
-  name: 'userNodePool'
+  name: 'userNodePool-${uniqueString(resourceGroup().id)}'
   params: {
     AksName: aks.name
     PoolName: nodePoolName
@@ -402,6 +420,16 @@ resource aks_admin_role_assignment 'Microsoft.Authorization/roleAssignments@2022
     roleDefinitionId: buildInAKSRBACClusterAdmin
     principalType: !empty(adminPrincipalId) ? 'User' : 'ServicePrincipal'
     principalId: adminPrincipalId
+  }
+}
+
+resource aks_admin_workload_identity_assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: aks
+  name: guid(aks.id, appIdentity.name, buildInAKSRBACClusterAdmin)
+  properties:{
+    roleDefinitionId: buildInAKSRBACClusterAdmin
+    principalType: 'ServicePrincipal'
+    principalId: appIdentity.properties.principalId 
   }
 }
 
@@ -437,7 +465,7 @@ resource containerLogsV2_Basiclogs 'Microsoft.OperationalInsights/workspaces/tab
 }
 
 //--------------
-//This role assignment enables AKS->LA Fast Alerting experience
+@description('This role assignment enables AKS->LA Fast Alerting experience')
 var MonitoringMetricsPublisherRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
 resource FastAlertingRole_Aks_Law 'Microsoft.Authorization/roleAssignments@2022-04-01' =  {
   scope: aks
@@ -480,45 +508,37 @@ resource aks_policies 'Microsoft.Authorization/policyAssignments@2022-06-01' = i
   }
 }
 
-// @description('Enable Metric Alerts')
-// param createAksMetricAlerts bool = true
 
-// @allowed([
-//   'Short'
-//   'Long'
-// ])
-// @description('Which Metric polling frequency model to use')
-// param AksMetricAlertMetricFrequencyModel string = 'Long'
+resource amw 'Microsoft.Monitor/accounts@2023-04-03' = if(enableMonitoring) {
+  name: 'amw-${uniqueString(resourceGroup().id)}'
+  location: location
+  tags: tags
+}
 
-// var AlertFrequencyLookup = {
-//   Short: {
-//     evalFrequency: 'PT1M'
-//     windowSize: 'PT5M'
-//   }
-//   Long: {
-//     evalFrequency: 'PT15M'
-//     windowSize: 'PT1H'
-//   }
-// }
-// var AlertFrequency = AlertFrequencyLookup[AksMetricAlertMetricFrequencyModel]
+module msprom 'FullAzureMonitorMetricsProfile.bicep' = if(enableMonitoring) {
+  name: 'msp-${uniqueString(resourceGroup().id)}'
+  params: {
+    azureMonitorWorkspaceLocation: location
+    azureMonitorWorkspaceResourceId: amw.id
+    clusterLocation: location
+    clusterResourceId: aks.id
+    grafanaAdminObjectId: adminPrincipalId
+    grafanaLocation: location
+    enableWindowsRecordingRules: enableWindowsRecordingRules
+    tags: tags
+    enableCollectionRules: false
+  }
+  dependsOn: [
+    userNodePool
+  ]
+}
 
-// module aksmetricalerts 'aksmetricalerts.bicep' =  if(createLaw) {
-//   name: take('${deployment().name}-aksmetricalerts',64)
-//   scope: resourceGroup()
-//   params: {
-//     clusterName: aks.name
-//     logAnalyticsWorkspaceName: aks_law.name
-//     metricAlertsEnabled: createAksMetricAlerts
-//     evalFrequency: AlertFrequency.evalFrequency
-//     windowSize: AlertFrequency.windowSize
-//     alertSeverity: 'Informational'
-//     logAnalyticsWorkspaceLocation: location
-//   }
-// }
-
-
-
-
+// ------------------
+//    OUTPUTS
+// ------------------
+output appIdentityClientId string = appIdentity.properties.clientId
+output appIdentityPrincipalId string = appIdentity.properties.principalId
+output appIdentityId string = appIdentity.id
 output daprReleaseNamespace string = daprAddon ? daprExtension.properties.scope.cluster.releaseNamespace : ''
 output aksNodeResourceGroup string = aks.properties.nodeResourceGroup
 output aksResourceId string = aks.id
@@ -527,3 +547,4 @@ output aksOidcIssuerUrl string = oidcIssuer ? aks.properties.oidcIssuerProfile.i
 output userNodePoolName string = nodePoolName
 output systemNodePoolName string = JustUseSystemPool ? nodePoolName : 'npsystem'
 output kvIdentityClientId string = aks.properties.addonProfiles.azureKeyvaultSecretsProvider.identity.clientId
+output kubeletIdenedityClientId string = aks.properties.identityProfile.kubeletidentity.objectId
