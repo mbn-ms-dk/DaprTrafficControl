@@ -1,12 +1,17 @@
+targetScope = 'resourceGroup'
+
+// ------------------
+//    PARAMETERS
+// ------------------
 @secure()
 param kubeConfig string
-
+@description('The name of the keyvault')
 param keyVaultName string
 @description('Aks namespace')
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

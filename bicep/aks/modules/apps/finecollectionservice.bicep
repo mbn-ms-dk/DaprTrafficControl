@@ -1,15 +1,11 @@
-targetScope = 'resourceGroup'
-
-// ------------------
-//    PARAMETERS
-// ------------------
+@secure()
 param kubeConfig string
 
-@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
-param visualsimulationServiceName string
+@description('The name of the service for the fineCollection service. The name is use as Dapr App ID.')
+param fineCollectionServiceName string
 
-@description('The target and dapr port for the visualsimulation service.')
-param visualsimulationPortNumber int
+@description('The target and dapr port for the fineCollection service.')
+param fineCollectionPortNumber int
 
 @description('The location where the resources will be created.')
 param location string = resourceGroup().location
@@ -27,34 +23,56 @@ param aksNameSpace string
 @description('Aks workload identity service account name')
 param serviceAccountName string
 
+// Service Bus
+@description('The name of the service bus namespace.')
+param serviceBusName string
+
+@description('The name of the service bus topic.')
+param serviceBusTopicName string
+
+@description('The AKS service principal id.')
+param aksPrincipalId string
+
 @description('Secret Provider Class Name')
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
 param secretProviderClassName string
 
-module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
-  name: visualsimulationServiceName
+// ------------------
+// RESOURCES
+// ------------------
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = {
+  name: serviceBusName
+}
+
+resource serviceBusTopic 'Microsoft.ServiceBus/namespaces/topics@2021-11-01' existing = {
+  name: serviceBusTopicName
+  parent: serviceBusNamespace
+}
+
+module buildfineCollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
+  name: fineCollectionServiceName
   params: {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'VisualSimulation'
-    imageName: '${aksNameSpace}/visualsimulation'
+    dockerfileDirectory: 'FineCollectionService'
+    imageName: '${aksNameSpace}/finecollectionservice' 
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: aksNameSpace
+  namespace: 'default'
   kubeConfig: kubeConfig
-} 
+}
 
-resource appsDeployment_uisim 'apps/Deployment@v1' = {
+resource appsDeployment_finecollectionservice 'apps/Deployment@v1' = {
   metadata: {
-    name: visualsimulationServiceName
+    name: fineCollectionServiceName
     namespace: aksNameSpace
     labels: {
-      app: visualsimulationServiceName
+      app: fineCollectionServiceName
       'azure.workload.identity/use': 'true'
     }
   }
@@ -62,7 +80,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
     replicas: 1
     selector: {
       matchLabels: {
-        app: visualsimulationServiceName
+        app: fineCollectionServiceName
       }
     }
     strategy: {
@@ -71,23 +89,23 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
     template: {
       metadata: {
         labels: {
-          app: visualsimulationServiceName
-          }
-          annotations: {
-            'dapr.io/enabled': 'true'
-            'dapr.io/app-id': visualsimulationServiceName
-            'dapr.io/app-port': '${visualsimulationPortNumber}'
-            'dapr.io/app-protocol': 'http'
-            'dapr.io/enableApiLogging': 'true'
-            'dapr.io/config': 'appconfig'
-          }
+          app: fineCollectionServiceName
+        }
+        annotations: {
+          'dapr.io/enabled': 'true'
+          'dapr.io/app-id': fineCollectionServiceName
+          'dapr.io/app-port': '${fineCollectionPortNumber}'
+          'dapr.io/app-protocol': 'http'
+          'dapr.io/enableApiLogging': 'true'
+          'dapr.io/config': 'appconfig'
+        }
       }
       spec: {
         serviceAccountName: serviceAccountName
         containers: [
           {
-            name: visualsimulationServiceName
-            image: buildvisualsimulation.outputs.acrImage
+            name: fineCollectionServiceName
+            image: buildfineCollection.outputs.acrImage
             imagePullPolicy: 'Always'
             env: [
               {
@@ -102,7 +120,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             ]
             ports: [
               {
-                containerPort: visualsimulationPortNumber
+                containerPort: fineCollectionPortNumber
               }
             ]
             volumeMounts: [
@@ -125,31 +143,18 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             }
           }
         } 
-      ]        
+      ]
       }
     }
   }
 }
 
-resource coreService_uisim 'core/Service@v1' = {
-  metadata: {
-    labels: {
-      app: visualsimulationServiceName
-    }
-    name: visualsimulationServiceName
-    namespace: aksNameSpace
+resource fineCollectionService_sb_role_assignment_system 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(resourceGroup().id, fineCollectionServiceName, '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
+  properties: {
+    principalId: aksPrincipalId
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver.
+    principalType: 'ServicePrincipal'
   }
-  spec: {
-    type: 'LoadBalancer'
-    ports: [
-      {
-        name: 'web'
-        port: visualsimulationPortNumber
-        targetPort: visualsimulationPortNumber
-      }
-    ]
-    selector: {
-      app: visualsimulationServiceName
-    }
-  }
+  scope: serviceBusTopic
 }

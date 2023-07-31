@@ -8,7 +8,7 @@ param serviceAccountName string = 'daprtrafficcontrol'
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

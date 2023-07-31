@@ -31,6 +31,6 @@ resource appInsightsSecret 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
   parent: keyVault
   name: applicationInsightsSecretName
   properties: {
-    value: applicationInsights.properties.ConnectionString
+    value: applicationInsights.properties.InstrumentationKey
   }
 }

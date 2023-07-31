@@ -54,6 +54,9 @@ param location string = resourceGroup().location
 @description('The name of the service for the finecollection service. The name is use as Dapr App ID and as the name of service bus topic subscription.')
 param finecollectionServiceName string
 
+@description('the target an Dapr port for the finecollection service.')
+param finecollectionPortNumber int
+
 @description('The name of the service for the trafficcontrol service. The name is use as Dapr App ID.')
 param trafficcontrolServiceName string 
 
@@ -69,6 +72,12 @@ param aksUserAssignedClientId string
 
 @description('Aks userassigned principal id')
 param aksUserAssignedPrincipalId string
+
+@description('The name of the service for the vehicleRegistration service. The name is use as Dapr App ID.')
+param vehicleRegistrationServiceName string
+
+@description('The target and dapr port for the vehicleRegistration service.')
+param vehicleRegistrationPortNumber int
 
 @description('Aks workload identity service account name')
 param serviceAccountName string
@@ -88,10 +97,13 @@ param mailServerUserSecretsName string
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
 param mailServerPasswordSecretsName string
 
+@description('Dapr config name')
+param daprConfigName string
+
 // ------------------
 //    RESOURCES
 // ------------------
-resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' existing = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' existing = {
   name: clusterName
 }
 
@@ -113,6 +125,7 @@ module dapr_config 'services/config.bicep' = {
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     aksNameSpace: aksNameSpace
+    daprConfigName: daprConfigName
   }
   dependsOn: [
     ns
@@ -239,6 +252,7 @@ module maildapr 'components/email-dapr.bicep' = {
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     aksNameSpace: aksNameSpace
+    mailServiceName: mailServiceName
     mailServerUserSecretsName: mailServerUserSecretsName
     mailServerPasswordSecretsName: mailServerPasswordSecretsName
   }
@@ -289,7 +303,7 @@ module statestore 'components/statestore.bicep' = {
     cosmosDbCollectionName: cosmosDbCollectionName
     cosmosDbDatabaseName: cosmosDbDatabaseName
     trafficcontrolServiceName: trafficcontrolServiceName
-    useActors: useActors
+    useActors: true //useActors
     aksNameSpace: aksNameSpace
   }
   dependsOn: [
@@ -312,26 +326,68 @@ module pubsub 'components/pubsub.bicep' = {
   ]
 }
 
-// @description('Deploy trafficcontrol service')
-// module trafficontrolservice 'apps/trafficcontrolservice.bicep' = {
-//   name: 'trafficcontrolservice-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
-//     location: location
-//     cosmosDbName: cosmosDbName
-//     cosmosDbCollectionName: cosmosDbCollectionName
-//     cosmosDbDatabaseName: cosmosDbDatabaseName
-//     serviceBusName: serviceBusName
-//     serviceBusTopicName: serviceBusTopicName
-//     aksPrincipalId: aks.identity.principalId
-//     trafficcontrolServiceName: trafficcontrolServiceName
-//     trafficcontrolPortNumber: trafficcontrolPortNumber
-//     containerRegistryName: containerRegistryName
-//     applicationInsightsSecretName: applicationInsightsSecretName
-//     useActors: useActors
-//     serviceAccountName: serviceAccountName
-//   }
-//   dependsOn: [
-//     ns
-//   ]
-// }
+@description('Deploy trafficcontrol service')
+module trafficontrolservice 'apps/trafficcontrolservice.bicep' = {
+  name: 'trafficcontrolservice-${uniqueString(resourceGroup().id)}'
+  params: {
+    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    location: location
+    cosmosDbName: cosmosDbName
+    cosmosDbCollectionName: cosmosDbCollectionName
+    cosmosDbDatabaseName: cosmosDbDatabaseName
+    serviceBusName: serviceBusName
+    serviceBusTopicName: serviceBusTopicName
+    aksPrincipalId: aks.identity.principalId
+    trafficcontrolServiceName: trafficcontrolServiceName
+    trafficcontrolPortNumber: trafficcontrolPortNumber
+    containerRegistryName: containerRegistryName
+    applicationInsightsSecretName: applicationInsightsSecretName
+    useActors: useActors
+    serviceAccountName: serviceAccountName
+    aksNameSpace: aksNameSpace
+  }
+  dependsOn: [
+    ns
+  ]
+}
+
+@description('Deploy vehicle registration service')
+module vehicleregistrationservice 'apps/vehicleregistrationservice.bicep' = {
+  name: 'vehicleregistrationservice-${uniqueString(resourceGroup().id)}'
+  params: {
+    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    location: location
+    vehicleRegistrationServiceName: vehicleRegistrationServiceName
+    vehicleRegistrationPortNumber: vehicleRegistrationPortNumber
+    containerRegistryName: containerRegistryName
+    applicationInsightsSecretName: applicationInsightsSecretName
+    serviceAccountName: serviceAccountName
+    aksNameSpace: aksNameSpace
+    secretProviderClassName: secretProviderClassName
+  }
+  dependsOn: [
+    ns
+  ]
+}
+
+@description('Deploy finecollection service')
+module finecollectionservice 'apps/finecollectionservice.bicep' = {
+  name: 'finecollectionservice-${uniqueString(resourceGroup().id)}'
+  params: {
+    kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
+    location: location
+    serviceBusName: serviceBusName
+    serviceBusTopicName: serviceBusTopicName
+    aksPrincipalId: aks.identity.principalId
+    fineCollectionServiceName: finecollectionServiceName
+    fineCollectionPortNumber: finecollectionPortNumber
+    containerRegistryName: containerRegistryName
+    applicationInsightsSecretName: applicationInsightsSecretName
+    serviceAccountName: serviceAccountName
+    aksNameSpace: aksNameSpace
+    secretProviderClassName: secretProviderClassName
+  }
+  dependsOn: [
+    ns
+  ]
+}

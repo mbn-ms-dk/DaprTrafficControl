@@ -3,9 +3,10 @@ targetScope = 'resourceGroup'
 // ------------------
 //    PARAMETERS
 // ------------------
-
+@description('The name of the AKS cluster')
 param AksName string
 
+@description('The name of the node pool')
 param PoolName string
 
 @description('The zones to use for a node pool')

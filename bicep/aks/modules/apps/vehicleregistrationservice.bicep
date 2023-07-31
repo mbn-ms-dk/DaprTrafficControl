@@ -1,15 +1,11 @@
-targetScope = 'resourceGroup'
-
-// ------------------
-//    PARAMETERS
-// ------------------
+@secure()
 param kubeConfig string
 
-@description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
-param visualsimulationServiceName string
+@description('The name of the service for the vehicleRegistration service. The name is use as Dapr App ID.')
+param vehicleRegistrationServiceName string
 
-@description('The target and dapr port for the visualsimulation service.')
-param visualsimulationPortNumber int
+@description('The target and dapr port for the vehicleRegistration service.')
+param vehicleRegistrationPortNumber int
 
 @description('The location where the resources will be created.')
 param location string = resourceGroup().location
@@ -31,30 +27,30 @@ param serviceAccountName string
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
 param secretProviderClassName string
 
-module buildvisualsimulation 'br/public:deployment-scripts/build-acr:2.0.1' = {
-  name: visualsimulationServiceName
+module buildvehicleRegistration 'br/public:deployment-scripts/build-acr:2.0.1' = {
+  name: vehicleRegistrationServiceName
   params: {
     AcrName: containerRegistryName
     location: location
     gitRepositoryUrl:  'https://github.com/mbn-ms-dk/DaprTrafficControl.git'
-    dockerfileDirectory: 'VisualSimulation'
-    imageName: '${aksNameSpace}/visualsimulation'
+    dockerfileDirectory: 'VehicleRegistrationService'
+    imageName: '${aksNameSpace}/vehicleregistrationservice' 
     imageTag: 'latest'
     cleanupPreference: 'Always'
   }
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: aksNameSpace
+  namespace: 'default'
   kubeConfig: kubeConfig
-} 
+}
 
-resource appsDeployment_uisim 'apps/Deployment@v1' = {
+resource appsDeployment_vehicleregistrationservice 'apps/Deployment@v1' = {
   metadata: {
-    name: visualsimulationServiceName
+    name: vehicleRegistrationServiceName
     namespace: aksNameSpace
     labels: {
-      app: visualsimulationServiceName
+      app: vehicleRegistrationServiceName
       'azure.workload.identity/use': 'true'
     }
   }
@@ -62,7 +58,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
     replicas: 1
     selector: {
       matchLabels: {
-        app: visualsimulationServiceName
+        app: vehicleRegistrationServiceName
       }
     }
     strategy: {
@@ -71,23 +67,23 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
     template: {
       metadata: {
         labels: {
-          app: visualsimulationServiceName
-          }
-          annotations: {
-            'dapr.io/enabled': 'true'
-            'dapr.io/app-id': visualsimulationServiceName
-            'dapr.io/app-port': '${visualsimulationPortNumber}'
-            'dapr.io/app-protocol': 'http'
-            'dapr.io/enableApiLogging': 'true'
-            'dapr.io/config': 'appconfig'
-          }
+          app: vehicleRegistrationServiceName
+        }
+        annotations: {
+          'dapr.io/enabled': 'true'
+          'dapr.io/app-id': vehicleRegistrationServiceName
+          'dapr.io/app-port': '${vehicleRegistrationPortNumber}'
+          'dapr.io/app-protocol': 'http'
+          'dapr.io/enableApiLogging': 'true'
+          'dapr.io/config': 'appconfig'
+        }
       }
       spec: {
         serviceAccountName: serviceAccountName
         containers: [
           {
-            name: visualsimulationServiceName
-            image: buildvisualsimulation.outputs.acrImage
+            name: vehicleRegistrationServiceName
+            image: buildvehicleRegistration.outputs.acrImage
             imagePullPolicy: 'Always'
             env: [
               {
@@ -102,7 +98,7 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             ]
             ports: [
               {
-                containerPort: visualsimulationPortNumber
+                containerPort: vehicleRegistrationPortNumber
               }
             ]
             volumeMounts: [
@@ -125,31 +121,8 @@ resource appsDeployment_uisim 'apps/Deployment@v1' = {
             }
           }
         } 
-      ]        
+      ]
       }
-    }
-  }
-}
-
-resource coreService_uisim 'core/Service@v1' = {
-  metadata: {
-    labels: {
-      app: visualsimulationServiceName
-    }
-    name: visualsimulationServiceName
-    namespace: aksNameSpace
-  }
-  spec: {
-    type: 'LoadBalancer'
-    ports: [
-      {
-        name: 'web'
-        port: visualsimulationPortNumber
-        targetPort: visualsimulationPortNumber
-      }
-    ]
-    selector: {
-      app: visualsimulationServiceName
     }
   }
 }

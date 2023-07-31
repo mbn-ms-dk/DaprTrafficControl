@@ -6,35 +6,35 @@ param kubeConfig string
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 
 resource appsDeployment_zipkin 'apps/Deployment@v1' = {
   metadata: {
-    name: 'dtc-zipkin'
+    name: '${aksNameSpace}-zipkin'
     namespace: aksNameSpace
     labels: {
-      service: 'zipkin'
+      service: '${aksNameSpace}-zipkin'
     }
   }
   spec: {
     replicas: 1
     selector: {
       matchLabels: {
-        service: 'zipkin'
+        service: '${aksNameSpace}-zipkin'
       }
     }
     template: {
       metadata: {
         labels: {
-          service: 'zipkin'
+          service: '${aksNameSpace}-zipkin'
         }
       }
       spec: {
         containers: [
           {
-            name: 'zipkin'
+            name: '${aksNameSpace}-zipkin'
             image: 'openzipkin/zipkin-slim'
             imagePullPolicy: 'IfNotPresent'
             ports: [
@@ -53,10 +53,10 @@ resource appsDeployment_zipkin 'apps/Deployment@v1' = {
 
 resource coreService_zipkin 'core/Service@v1' = {
   metadata: {
-    name: 'zipkin'
+    name: '${aksNameSpace}-zipkin'
     namespace: aksNameSpace
     labels: {
-      service: 'zipkin'
+      service: '${aksNameSpace}-zipkin'
     }
   }
   spec: {
@@ -66,11 +66,11 @@ resource coreService_zipkin 'core/Service@v1' = {
         port: 9411
         targetPort: 9411
         protocol: 'TCP'
-        name: 'zipkin'
+        name: '${aksNameSpace}-zipkin'
       }
     ]
     selector: {
-      service: 'zipkin'
+      service: '${aksNameSpace}-zipkin'
     }
   }
 }

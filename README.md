@@ -119,14 +119,14 @@ az group create --name $rg --location $loc
 
 4. Deploy 
 ```powershell
-az deployment group create --resource-group $rg --template-file "./bicep/aca/main.bicep" --parameters "./bicep/aca/main.parameters.json"
+az deployment group create --resource-group $rg --template-file "./bicep/aks/main.bicep" --parameters "./bicep/aks/main.parameters.json"
 ```
 
 5. Cleanup
 ```powershell
 az group delete -g $rg --yes --no-wait
 ```
-
+kubectl apply -f .\Projects\DaprTrafficControl\bicep\aks\modules\kvsync.yaml  
 
 ### Deploy to AKS using github actions
 This project is using Github Actions to deploy
@@ -187,6 +187,11 @@ az aks get-credentials -n $aks -g $rg --admin
 ### aks set default namespace for kubectl
 ```powershell
 kubectl config set-context --current --namespace=<your-namespace>
+```
+
+###You can see that now a new Dapr configuration which enables tracing has been added. Run the command:
+```powershell	
+dapr configurations --kubernetes
 ```
 
 ## Use Azure Container apps

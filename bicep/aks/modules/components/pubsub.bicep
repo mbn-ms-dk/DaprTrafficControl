@@ -1,3 +1,8 @@
+targetScope = 'resourceGroup'
+
+// ------------------
+//    PARAMETERS
+// ------------------
 @secure()
 param kubeConfig string
 
@@ -14,7 +19,7 @@ param finecollectionserviceServiceName string
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

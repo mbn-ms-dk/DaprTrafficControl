@@ -38,7 +38,7 @@ param keyVaultAksCSI bool = false
 param omsagent bool = false
 
 @description('Enable Azure Montior/Prometheus')
-param enableMonitoring bool = false
+param enableMonitoring bool
 
 @description('Rotation poll interval for the AKS KV CSI provider')
 param keyVaultAksCSIPollInterval string = '2m'
@@ -50,6 +50,11 @@ param daprAddonHA bool = false
 
 @description('Then log analytics workspace ID')
 param workspaceName string = ''
+
+@description('The metric labels to be allowed for the kube-state-metrics.')
+param metricLabelsAllowlist string = ''
+@description('The metric annotations to be allowed for the kube-state-metrics.')
+param metricAnnotationsAllowList string = ''
 
 @allowed([
   'none'
@@ -159,7 +164,7 @@ param aksNameSpace string
 @description('enable Windows node logs')
 param enableWindowsRecordingRules bool = false
 
-@description('Autoscalle profile')
+@description('Autoscale profile')
 param AutoscaleProfile object = {
   'balance-similar-node-groups': 'true'
   expander: 'random'
@@ -198,6 +203,9 @@ param SystemPoolCustomPreset object = {}
 @allowed(['Audit', 'Deny', 'Disabled'])
 @description('Enable the Azure Policy addon')
 param azurepolicy string = 'Audit'
+
+@description('Enable collection rules')
+param enableCollectionRules bool
 
 // ------------------
 //    EXISTING RESOURCES
@@ -310,6 +318,15 @@ var aksProperties = union({
   agentPoolProfiles: agentPoolProfiles
   networkProfile: {
     loadBalancerSku: 'standard'
+    monitoring: { //This addon can be used to configure network monitoring and generate network monitoring data in Prometheus format
+      enabled: enableMonitoring
+      config: {
+        logAnalyticsWorkspaceResourceID: createLaw ? aks_law.id : null
+        identity: {
+          type: 'SystemAssigned'
+        }
+      }
+    }
     networkPlugin: networkPlugin
     #disable-next-line BCP036 //Disabling validation of this parameter to cope with empty string to indicate no Network Policy required.
     networkPluginMode: networkPlugin=='azure' ? networkPluginMode : ''
@@ -327,6 +344,9 @@ var aksProperties = union({
   //   }
   // }
   disableLocalAccounts: AksDisableLocalAccounts && enable_aad
+  servicePrincipalProfile: { //managed identity
+    clientId: 'msi'
+  }
   autoUpgradeProfile: {upgradeChannel: upgradeChannel}
   addonProfiles: aks_addons
   autoScalerProfile: autoScale ? AutoscaleProfile : {}
@@ -363,7 +383,7 @@ var dnsPrefix = '${aksNameSpace}-dns'
 //    RESOURCES
 // ------------------
 resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
-  name: 'aksWlIdentity-${aksNameSpace}'
+  name: 'aksWorkloadIdentity-${aksNameSpace}'
   location: location
   tags: tags
 
@@ -377,7 +397,7 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
   }
 }
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' = {
   name: 'aks${uniqueString(resourceGroup().id)}'
   location: location
   tags: tags
@@ -386,10 +406,10 @@ resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' = {
     tier: 'Free'
   }
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      '${appIdentity.id}': {}
-  }
+    // type: 'UserAssigned'
+    // userAssignedIdentities: {
+    //   '${appIdentity.id}': {}
+      type: 'SystemAssigned'
   }
   properties: aksProperties
 }
@@ -423,16 +443,6 @@ resource aks_admin_role_assignment 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-resource aks_admin_workload_identity_assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: aks
-  name: guid(aks.id, appIdentity.name, buildInAKSRBACClusterAdmin)
-  properties:{
-    roleDefinitionId: buildInAKSRBACClusterAdmin
-    principalType: 'ServicePrincipal'
-    principalId: appIdentity.properties.principalId 
-  }
-}
-
 resource daprExtension 'Microsoft.KubernetesConfiguration/extensions@2022-11-01' = if(daprAddon) {
   name: 'dapr'
   scope: aks
@@ -442,6 +452,7 @@ resource daprExtension 'Microsoft.KubernetesConfiguration/extensions@2022-11-01'
       releaseTrain: 'Stable'
       configurationSettings: {
           'global.ha.enabled': '${daprAddonHA}'
+          'global.tag': '1.11.1-mariner'
       }
       scope: {
         cluster: {
@@ -465,6 +476,7 @@ resource containerLogsV2_Basiclogs 'Microsoft.OperationalInsights/workspaces/tab
 }
 
 //--------------
+
 @description('This role assignment enables AKS->LA Fast Alerting experience')
 var MonitoringMetricsPublisherRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '3913510d-42f4-4e42-8a64-420c390055eb')
 resource FastAlertingRole_Aks_Law 'Microsoft.Authorization/roleAssignments@2022-04-01' =  {
@@ -476,7 +488,6 @@ resource FastAlertingRole_Aks_Law 'Microsoft.Authorization/roleAssignments@2022-
     principalType: 'ServicePrincipal'
   }
 }
-
 
 var azurePolicyInitiative = 'Baseline'
 var policySetBaseline = '/providers/Microsoft.Authorization/policySetDefinitions/a8640138-9b0a-4a28-b8cb-1666c838647d'
@@ -507,32 +518,6 @@ resource aks_policies 'Microsoft.Authorization/policyAssignments@2022-06-01' = i
     description: 'As per: https://github.com/Azure/azure-policy/blob/master/built-in-policies/policySetDefinitions/Kubernetes/'
   }
 }
-
-
-resource amw 'Microsoft.Monitor/accounts@2023-04-03' = if(enableMonitoring) {
-  name: 'amw-${uniqueString(resourceGroup().id)}'
-  location: location
-  tags: tags
-}
-
-module msprom 'FullAzureMonitorMetricsProfile.bicep' = if(enableMonitoring) {
-  name: 'msp-${uniqueString(resourceGroup().id)}'
-  params: {
-    azureMonitorWorkspaceLocation: location
-    azureMonitorWorkspaceResourceId: amw.id
-    clusterLocation: location
-    clusterResourceId: aks.id
-    grafanaAdminObjectId: adminPrincipalId
-    grafanaLocation: location
-    enableWindowsRecordingRules: enableWindowsRecordingRules
-    tags: tags
-    enableCollectionRules: false
-  }
-  dependsOn: [
-    userNodePool
-  ]
-}
-
 // ------------------
 //    OUTPUTS
 // ------------------

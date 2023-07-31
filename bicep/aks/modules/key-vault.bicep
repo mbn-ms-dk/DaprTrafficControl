@@ -24,7 +24,7 @@ param location string = resourceGroup().location
 @description('The name of the exissting AKS cluster to integrate with the KeyVault')
 param aksClusterName string = ''
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' existing = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' existing = {
   name: aksClusterName
 }
 

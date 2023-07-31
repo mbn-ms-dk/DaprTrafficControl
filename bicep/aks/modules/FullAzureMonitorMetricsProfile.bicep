@@ -26,7 +26,7 @@ param grafanaAdminObjectId string
 @description('The tags to be assigned to the created resources.')
 param tags object = {}
 @description('Enable collection rules')
-param enableCollectionRules bool = false
+param enableCollectionRules bool
 
 // ------------------
 //    VARIABLES
@@ -471,7 +471,7 @@ resource nodeAndKubernetesRecordingRuleGroupNameWin 'Microsoft.AlertsManagement/
 }
 
 resource grafanaResource 'Microsoft.Dashboard/grafana@2022-08-01' = {
-  name: 'graf-dtc'
+  name: 'graf-${uniqueString(resourceGroup().id)}'
   sku: {
     name: grafanaSku
   }
@@ -497,7 +497,7 @@ resource selfRoleAssignmentGrafana 'Microsoft.Authorization/roleAssignments@2022
   name: guid(grafanaResource.id, grafanaAdminObjectId, grafanaAdminRole)
   scope: grafanaResource
   properties: {
-    roleDefinitionId: grafanaAdminRole//'/subscriptions/${azureMonitorWorkspaceSubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/22926164-76b3-42b3-bc55-97df8dab3e41'
+    roleDefinitionId: grafanaAdminRole
     principalId: grafanaAdminObjectId
   }
 }
@@ -505,9 +505,9 @@ resource selfRoleAssignmentGrafana 'Microsoft.Authorization/roleAssignments@2022
 // Provide Grafana access to the AMW instance
 var grafanaAmwRole = subscriptionResourceId('Microsoft.Authorization/roleDefinitions','b0d8363b-8ddd-447d-831f-62ca05bff136')
 resource roleAssignmentLocal 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(grafanaResource.id, grafanaResource.id, grafanaAmwRole)
+  name: guid(grafanaResource.id, azureMonitorWorkspaceResourceId, grafanaAmwRole)
   properties: {
-    roleDefinitionId: grafanaAmwRole//'/subscriptions/${azureMonitorWorkspaceSubscriptionId}/providers/Microsoft.Authorization/roleDefinitions/b0d8363b-8ddd-447d-831f-62ca05bff136'
+    roleDefinitionId: grafanaAmwRole
     principalId: grafanaResource.identity.principalId
   }
 }

@@ -1,8 +1,16 @@
+targetScope = 'resourceGroup'
+
+// ------------------
+//    PARAMETERS
+// ------------------
 @secure()
 param kubeConfig string
 
 @description('Aks namespace')
 param aksNameSpace string
+
+@description('The name of the service for the mail service. The name is use as Dapr App ID.')
+param mailServiceName string
 
 @description('Mail server secret username')
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
@@ -29,7 +37,7 @@ resource daprIoComponent_sendmail 'dapr.io/Component@v1alpha1' = {
     metadata: [
       {
         name: 'host'
-        value: 'mailserver'
+        value: mailServiceName
       }
       {
         name: 'port'
