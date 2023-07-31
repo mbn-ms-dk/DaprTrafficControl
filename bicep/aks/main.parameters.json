@@ -18,19 +18,22 @@
       "value": "speedingviolations"
     },
     "serviceAccountName": {
-      "value": "dtc-workload-identity-sa"
+      "value": "workload-identity-sa"
     },
     "aksNameSpace": {
       "value": "dtc"
     },
     "secretProviderClassName": {
-      "value": "dtc-azure-kvsync"
+      "value": "azure-kvsync"
     },
     "mailServerUserSecretsName": {
       "value": "mailserveruser"
     },
     "mailServerPasswordSecretsName": {
       "value": "mailserverpassword"
+    },
+    "daprConfigName": {
+      "value": "appconfig"
     }
   }
 }

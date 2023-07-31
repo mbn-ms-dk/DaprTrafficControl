@@ -25,7 +25,7 @@ param acrPushRolePrincipalId string = ''
 @description('The SKU to use for the Container Registry')
 param registries_sku string = 'Basic'
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-04-02-preview' existing = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' existing = {
   name: aksClusterName
 }
 

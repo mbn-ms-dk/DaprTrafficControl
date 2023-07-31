@@ -96,6 +96,9 @@ param serviceAccountName string
 @description('Aks workload identity namespace')
 param aksNameSpace string
 
+@description('Enable collection rules')
+param enableCollectionRules bool = false
+
 @description('Secret Provider Class Name')
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
 param secretProviderClassName string
@@ -109,8 +112,14 @@ param mailServerUserSecretsName string
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
 param mailServerPasswordSecretsName string
 
+@description('Dapr config name')
+param daprConfigName string
+
 @description('Optional. The principal ID to assign the AKS/grafana admin role.')
 param adminPrincipalId string = '2f6b4e5f-aa31-4446-b0d4-045883ff2ce9'
+
+@description('Enable Azure Montior/Prometheus')
+param enableMonitoring bool = true
 
 // ------------------
 //    MODULES
@@ -152,7 +161,7 @@ module aks 'modules/aks.bicep' = {
     location: location
     tags: tags
     workspaceName: aks_law.outputs.LogAnalyticsName
-    serviceAccountName: serviceAccountName
+    serviceAccountName: '${aksNameSpace}-${serviceAccountName}'
     aksNameSpace: aksNameSpace
     adminPrincipalId: adminPrincipalId
     omsagent: true
@@ -160,6 +169,7 @@ module aks 'modules/aks.bicep' = {
     enableAzureRBAC: true
     agentCount: 1
     agentCountMax: 3
+    enableCollectionRules: enableCollectionRules
     //enable workload identity
     workloadIdentity: true
     //workload identity requires OIDCIssuer to be configured on AKS
@@ -179,6 +189,30 @@ module aks 'modules/aks.bicep' = {
     aks_law
     cosmosDb
   ] 
+}
+
+resource amw 'Microsoft.Monitor/accounts@2023-04-03' = if(enableMonitoring) {
+  name: 'amw-${uniqueString(resourceGroup().id)}'
+  location: location
+  tags: union(tags, { Azmon: aks.name})
+}
+
+module msprom 'modules/FullAzureMonitorMetricsProfile.bicep' = if(enableMonitoring) {
+  name: 'azmon-${uniqueString(resourceGroup().id)}'
+  params: {
+    azureMonitorWorkspaceLocation: location
+    azureMonitorWorkspaceResourceId: amw.id
+    clusterLocation: location
+    clusterResourceId: aks.outputs.aksResourceId
+    grafanaAdminObjectId: adminPrincipalId
+    grafanaLocation: location
+    enableWindowsRecordingRules: false//enableWindowsRecordingRules
+    tags: tags
+    enableCollectionRules: enableCollectionRules
+  }
+  dependsOn: [
+      aks
+  ]
 }
 
 module cosmosrbac 'modules/cosmosRbac.bicep' = {
@@ -241,7 +275,7 @@ module deploy 'modules/deployapps.bicep' = {
   params: {
     location: location
     aksNameSpace: aksNameSpace
-    secretProviderClassName: secretProviderClassName
+    secretProviderClassName: '${aksNameSpace}-${secretProviderClassName}'
     aksUserAssignedClientId: aks.outputs.appIdentityClientId
     aksUserAssignedPrincipalId: aks.outputs.appIdentityPrincipalId
     containerRegistryName: acr.outputs.containerRegistryName
@@ -254,7 +288,7 @@ module deploy 'modules/deployapps.bicep' = {
     serviceBusTopicName: serviceBus.outputs.serviceBusTopicName
     applicationInsightsName: aks_law.outputs.applicationInsightsName
     applicationInsightsSecretName: applicationInsightsSecretName
-    serviceAccountName: serviceAccountName
+    serviceAccountName: '${aksNameSpace}-${serviceAccountName}'
     visualsimulationServiceName: visualsimulationServiceName
     visualsimulationPortNumber: visualsimulationPortNumber
     mailServiceName: mailServiceName
@@ -264,8 +298,12 @@ module deploy 'modules/deployapps.bicep' = {
     useMosquitto: useMosquitto
     useActors: useActors
     finecollectionServiceName: finecollectionServiceName
+    finecollectionPortNumber: finecollectionPortNumber
+    vehicleRegistrationServiceName: vehicleregistrationServiceName
+    vehicleRegistrationPortNumber: vehicleregistrationPortNumber
     mailServerUserSecretsName: mailServerUserSecretsName
     mailServerPasswordSecretsName: mailServerPasswordSecretsName
+    daprConfigName: daprConfigName
   }
   dependsOn: [
     aks

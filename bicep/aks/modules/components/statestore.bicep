@@ -1,3 +1,9 @@
+
+targetScope = 'resourceGroup'
+
+// ------------------
+//    PARAMETERS
+// ------------------
 @secure()
 param kubeConfig string
 

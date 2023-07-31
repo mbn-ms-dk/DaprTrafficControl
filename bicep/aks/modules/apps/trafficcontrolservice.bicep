@@ -43,22 +43,22 @@ param useActors bool
 @description('Aks workload identity service account name')
 param serviceAccountName string
 
+
+@description('Aks namespace')
+param aksNameSpace string
+
 @description('Data actions permitted by the Role Definition')
 param dataActions array = [
   'Microsoft.DocumentDB/databaseAccounts/readMetadata'
   'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers/items/*'
 ]
 
-@description('Aks workload identity service account name')
-param serviceAccountNameSpace string
-
-
 var roleDefinitionId = guid('sql-role-definition-', trafficcontrolServiceName)
-var roleDefinitionName = 'My Read Write Role'
+var roleDefinitionName = 'My Read Write Role ${uniqueString(resourceGroup().id)}'
 var roleAssignmentId = guid(roleDefinitionId, trafficcontrolServiceName)
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 
@@ -78,12 +78,12 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' exis
   name: cosmosDbName
 }
 
-resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-04-15' existing = {
+resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-04-15' existing = {
   name: cosmosDbDatabaseName
   parent: cosmosDbAccount
 }
 
-resource cosmosDbDatabaseCollection 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2021-05-15' existing = {
+resource cosmosDbDatabaseCollection 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15' existing = {
   name: cosmosDbCollectionName
   parent: cosmosDbDatabase
 }
@@ -104,7 +104,7 @@ module buildtrafficcontrol 'br/public:deployment-scripts/build-acr:2.0.1' = {
 resource appsDeployment_trafficcontrolservice 'apps/Deployment@v1' = {
   metadata: {
     name: trafficcontrolServiceName
-    namespace: serviceAccountNameSpace
+    namespace: aksNameSpace
     labels: {
       app: trafficcontrolServiceName
     }
@@ -142,7 +142,7 @@ resource appsDeployment_trafficcontrolservice 'apps/Deployment@v1' = {
             imagePullPolicy: 'Always'
             env: [
               {
-                name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+                name: 'ApplicationInsights__InstrumentationKey'
                 valueFrom: {
                   secretKeyRef: {
                     name: applicationInsightsSecretName
