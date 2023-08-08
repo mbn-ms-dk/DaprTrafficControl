@@ -33,11 +33,18 @@ param serviceBusTopicName string
 @description('The name of the service for the mosquitto service. The name is use as Dapr App ID.')
 param mosquittoServiceName string
 
+@description('The target and dapr port for the mosquitto service.')
+param mosquittoPortNumber int
+
 @description('Use the mosquitto broker for MQTT communication. if false it uses Http')
 param useMosquitto bool
 
 @description('The name of the service for the mail service. The name is use as Dapr App ID.')
 param mailServiceName string 
+
+
+@description('The target and dapr port for the mail service.')
+param mailPortNumber int
 
 @description('Use actors in traffic control service')
 param useActors bool
@@ -69,9 +76,6 @@ param containerRegistryName string
 
 @description('Aks userassigned client id')
 param aksUserAssignedClientId string
-
-@description('Aks userassigned principal id')
-param aksUserAssignedPrincipalId string
 
 @description('The name of the service for the vehicleRegistration service. The name is use as Dapr App ID.')
 param vehicleRegistrationServiceName string
@@ -197,24 +201,6 @@ module appinsightssecretstore 'services/app-insights-secrets.bicep' = {
   ]
 }
 
-// @description('Sync kayvault secrets to kubernetes secrets using CSI driver')
-// module syncKv 'services/kvsync.bicep' = {
-//   name: 'syncKv-${uniqueString(resourceGroup().id)}'
-//   params: {
-//     kubeConfig:  aksUserAssignedPrincipalId//aks.listClusterAdminCredential().kubeconfigs[0].value //base64(aks.properties.identityProfile.kubeletidentity.objectId) or base64(aks.properties.servicePrincipalProfile.clientId)
-//     aksNameSpace: aksNameSpace
-//     secretProviderClassName: secretProviderClassName
-//     aksUserAssignedClientId: aksUserAssignedClientId
-//     keyVaultName: keyVaultName
-//     applicationInsightsSecretName: applicationInsightsSecretName
-//     mailServerUserSecretsName: mailServerUserSecretsName
-//     mailServerPasswordSecretsName: mailServerPasswordSecretsName
-//   }
-//   dependsOn: [
-//     ns
-//   ]
-// }
-
 @description('Deploy test sample pod')
 module testpod 'apps/wlpod.bicep' = {
   name: 'testpod-${uniqueString(resourceGroup().id)}'
@@ -237,6 +223,7 @@ module mosquitto 'apps/mosquitto.bicep' =  if (useMosquitto) {
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     mosquittoServiceName: mosquittoServiceName
+    mosquittoPortNumber: mosquittoPortNumber
     location: location
     containerRegistryName: containerRegistryName
     aksNameSpace: aksNameSpace
@@ -267,6 +254,7 @@ module mailserver 'apps/mailserver.bicep' = {
   params: {
     kubeConfig: aks.listClusterAdminCredential().kubeconfigs[0].value
     mailServiceName: mailServiceName
+    mailPortNumber: mailPortNumber
     aksNameSpace: aksNameSpace
   }
   dependsOn: [

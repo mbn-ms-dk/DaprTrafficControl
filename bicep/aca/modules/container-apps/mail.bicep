@@ -24,7 +24,7 @@ param mailPortNumber int
 // RESOURCES
 // ------------------
 
-resource mailService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource mailService 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: mailServiceName
   location: location
   tags: union(tags, { containerApp: mailServiceName })

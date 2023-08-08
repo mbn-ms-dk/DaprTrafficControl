@@ -53,9 +53,6 @@ param finecollectionServiceName string = '${aksNameSpace}-finecollection'
 @description('The name of the service for the trafficcontrol service. The name is use as Dapr App ID.')
 param trafficcontrolServiceName string = '${aksNameSpace}-trafficcontrol'
 
-@description('The name of the service for the trafficsimulation service. The name is use as Dapr App ID.')
-param trafficsimulationServiceName string = '${aksNameSpace}-trafficsimulation'
-
 @description('The name of the service for the visualsimulation service. The name is use as Dapr App ID.')
 param visualsimulationServiceName string = '${aksNameSpace}-visualsimulation'
 
@@ -75,8 +72,8 @@ param finecollectionPortNumber int = 5158
 @description('The dapr port for the trafficcontrol service.')
 param trafficcontrolPortNumber int = 5047
 
-@description('The dapr port for the trafficsimulation service.')
-param trafficsimulationPortNumber int = 5286
+// @description('The dapr port for the trafficsimulation service.')
+// param trafficsimulationPortNumber int = 5286
 
 @description('The dapr port for the vehicleregistration service.')
 param vehicleregistrationPortNumber int = 5287
@@ -277,7 +274,6 @@ module deploy 'modules/deployapps.bicep' = {
     aksNameSpace: aksNameSpace
     secretProviderClassName: '${aksNameSpace}-${secretProviderClassName}'
     aksUserAssignedClientId: aks.outputs.appIdentityClientId
-    aksUserAssignedPrincipalId: aks.outputs.appIdentityPrincipalId
     containerRegistryName: acr.outputs.containerRegistryName
     clusterName: aks.outputs.aksClusterName
     keyVaultName: kv.outputs.keyVaultName
@@ -292,7 +288,9 @@ module deploy 'modules/deployapps.bicep' = {
     visualsimulationServiceName: visualsimulationServiceName
     visualsimulationPortNumber: visualsimulationPortNumber
     mailServiceName: mailServiceName
+    mailPortNumber: mailPortNumber
     mosquittoServiceName: mosquittoServiceName
+    mosquittoPortNumber: mosquittoPortNumber
     trafficcontrolServiceName: trafficcontrolServiceName
     trafficcontrolPortNumber: trafficcontrolPortNumber
     useMosquitto: useMosquitto

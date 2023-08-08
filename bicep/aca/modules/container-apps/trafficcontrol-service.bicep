@@ -98,17 +98,17 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' exis
   name: cosmosDbName
 }
 
-resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2021-04-15' existing = {
+resource cosmosDbDatabase 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-04-15' existing = {
   name: cosmosDbDatabaseName
   parent: cosmosDbAccount
 }
 
-resource cosmosDbDatabaseCollection 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2021-05-15' existing = {
+resource cosmosDbDatabaseCollection 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15' existing = {
   name: cosmosDbCollectionName
   parent: cosmosDbDatabase
 }
 
-resource trafficcontrolService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource trafficcontrolService 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: trafficcontrolServiceName
   location: location
   tags: union(tags, { containerApp: trafficcontrolServiceName })
@@ -190,7 +190,7 @@ resource trafficcontrolService_cosmosdb_role_assignment_system 'Microsoft.Docume
   }
 }
 
-resource sqlRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions@2021-04-15' = {
+resource sqlRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions@2023-04-15' = {
   parent: cosmosDbAccount
   name: roleDefinitionId
   properties: {
@@ -207,7 +207,7 @@ resource sqlRoleDefinition 'Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinit
   }
 }
 
-resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2021-04-15' = {
+resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
   parent: cosmosDbAccount
   name: roleAssignmentId
   properties: {

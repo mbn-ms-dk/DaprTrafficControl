@@ -66,7 +66,7 @@ resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existi
   name: serviceBusName
 }
   
-resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource finecollectionService 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: finecollectionServiceName
   location: location
   tags: union(tags, { containerApp: finecollectionServiceName })
@@ -131,7 +131,7 @@ resource finecollectionService 'Microsoft.App/containerApps@2022-06-01-preview' 
 }
 
 // Enable consume from servicebus using system managed identity.
-resource finecollectionService_sb_role_assignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+resource finecollectionService_sb_role_assignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(resourceGroup().id, finecollectionService.name, '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
   properties: {
     principalId: finecollectionService.identity.principalId

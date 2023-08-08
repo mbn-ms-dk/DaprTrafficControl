@@ -194,6 +194,11 @@ kubectl config set-context --current --namespace=<your-namespace>
 dapr configurations --kubernetes
 ```
 
+### after deploying, update kvsync.yaml with workload identity id, keyvault name and tenant id and apply using kubectl
+```shell
+kubectl apply -f .\bicep\aks\modules\kvsync.yaml  
+```
+
 ## Use Azure Container apps
 [https://docs.microsoft.com/en-us/azure/container-apps/quickstart-dotnet-azure-container-apps]
 ### The bicep strucure
