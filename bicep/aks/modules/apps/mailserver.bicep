@@ -4,6 +4,10 @@ param kubeConfig string
 @description('The name of the service for the mail service. The name is use as Dapr App ID.')
 param mailServiceName string
 
+
+@description('The target and dapr port for the mail service.')
+param mailPortNumber int
+
 @description('Aks namespace where the mail service will be deployed.')
 param aksNameSpace string
 
@@ -45,7 +49,7 @@ resource appsDeployment_mailserver 'apps/Deployment@v1' = {
             ports: [
               {
                 name: 'smtp'
-                containerPort: 1025
+                containerPort: mailPortNumber
                 protocol: 'TCP'
               }
               {
@@ -77,7 +81,7 @@ resource coreService_mailserver 'core/Service@v1' = {
       {
         name: 'smtp'
         port: 25
-        targetPort: 1025
+        targetPort: mailPortNumber
         protocol: 'TCP'
       }
       {

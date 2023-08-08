@@ -17,7 +17,7 @@ param applicationInsightsSecretName string
 // RESOURCES
 // ------------------
 
-resource keyVault 'Microsoft.KeyVault/vaults@2021-04-01-preview' existing = {
+resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' existing = {
   name: keyVaultName
 }
 

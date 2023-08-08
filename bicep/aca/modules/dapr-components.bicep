@@ -78,7 +78,7 @@ resource secretstoreComponent 'Microsoft.App/managedEnvironments/daprComponents@
 }
 
 //Cosmos DB State Store Component
-resource statestoreComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
+resource statestoreComponent 'Microsoft.App/managedEnvironments/daprComponents@2023-04-01-preview' = {
   name: 'statestore'
   parent: containerAppsEnvironment
   properties: {
@@ -111,7 +111,7 @@ resource statestoreComponent 'Microsoft.App/managedEnvironments/daprComponents@2
 }
 
 //PubSub service bus Component
-resource pubsubComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
+resource pubsubComponent 'Microsoft.App/managedEnvironments/daprComponents@2023-04-01-preview' = {
   name: 'pubsub'
   parent: containerAppsEnvironment
   properties: {
@@ -137,7 +137,7 @@ resource pubsubComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-
 }
 
 // Entrycam component
-resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' =  if (useMosquitto) {
+resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@2023-04-01-preview' =  if (useMosquitto) {
   name: 'entrycam'
   parent: containerAppsEnvironment
   properties: {
@@ -164,7 +164,7 @@ resource entrycamComponent 'Microsoft.App/managedEnvironments/daprComponents@202
 }
 
 // Exitcam component
-resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview'  =  if (useMosquitto) {
+resource exitcamComponent 'Microsoft.App/managedEnvironments/daprComponents@2023-04-01-preview'  =  if (useMosquitto) {
   name: 'exitcam'
   parent: containerAppsEnvironment
   properties: {
@@ -201,7 +201,7 @@ module emailSecrets 'secrets/mail-server-secrets.bicep' = {
 }
 
 //Email component
-resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2022-06-01-preview' = {
+resource emailComponent 'Microsoft.App/managedEnvironments/daprComponents@2023-04-01-preview' = {
   name: 'sendmail'
   parent: containerAppsEnvironment
   properties: {

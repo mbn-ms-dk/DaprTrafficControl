@@ -8,10 +8,10 @@ spec:
   parameters:
     usePodIdentity: "false"
     useVMManagedIdentity: "false"
-    clientID: 'e71c32df-ae88-4c95-ae6c-9167cac1ffff' 
-    keyvaultName: "kv-di2ohuv2juwg6"
+    clientID: '<workload-client'id>' 
+    keyvaultName: "<Keyvault name>"
     cloudName: ""
-    tenantId: "16b3c013-d300-468d-ac64-7eda0820b6d3"
+    tenantId: "<tenant id>"
     objects:  |
       array:
         - |

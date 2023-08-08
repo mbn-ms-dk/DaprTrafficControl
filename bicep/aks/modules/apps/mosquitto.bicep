@@ -4,6 +4,9 @@ param kubeConfig string
 @description('The name of the service for the mosquitto service. The name is use as Dapr App ID.')
 param mosquittoServiceName string
 
+@description('The target and dapr port for the mosquitto service.')
+param mosquittoPortNumber int
+
 @description('The location where the resources will be created.')
 param location string = resourceGroup().location
 
@@ -66,7 +69,7 @@ resource appsDeployment_mosquitto 'apps/Deployment@v1' = {
             ports: [
               {
                 name: 'mqtt'
-                containerPort: 1883
+                containerPort: mosquittoPortNumber
                 protocol: 'TCP'
               }
               {
@@ -95,8 +98,8 @@ resource coreService_mosquitto 'core/Service@v1' = {
     ports: [
       {
         name: 'mqtt'
-        port: 1883
-        targetPort: 1883
+        port: mosquittoPortNumber
+        targetPort: mosquittoPortNumber
       }
       {
         name: 'ws'

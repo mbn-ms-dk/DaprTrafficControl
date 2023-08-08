@@ -55,7 +55,7 @@ module buildvehicleregistration 'br/public:deployment-scripts/build-acr:2.0.1' =
 // RESOURCES
 // ------------------
 
-resource vehicleregistrationService 'Microsoft.App/containerApps@2022-06-01-preview' = {
+resource vehicleregistrationService 'Microsoft.App/containerApps@2023-04-01-preview' = {
   name: vehicleregistrationServiceName
   location: location
   tags: union(tags, { containerApp: vehicleregistrationServiceName })
