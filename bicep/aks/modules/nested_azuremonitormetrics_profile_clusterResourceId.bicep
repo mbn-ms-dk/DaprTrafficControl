@@ -8,9 +8,9 @@ param variables_clusterName string
 @description('The location of the AKS cluster.')
 param clusterLocation string
 @description('The metric labels to be allowed for the kube-state-metrics.')
-param metricLabelsAllowlist string
+param metricLabelsAllowlist string = ''
 @description('The metric annotations to be allowed for the kube-state-metrics.')
-param metricAnnotationsAllowList string
+param metricAnnotationsAllowList string = ''
 @description('The tags to be assigned to the created resources.')
 param tags object = {}
 
