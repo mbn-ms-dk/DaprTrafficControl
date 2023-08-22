@@ -165,7 +165,7 @@ module aks 'modules/aks.bicep' = {
     enable_aad: true
     enableAzureRBAC: true
     agentCount: 1
-    agentCountMax: 3
+    agentCountMax: 2
     enableCollectionRules: enableCollectionRules
     //enable workload identity
     workloadIdentity: true

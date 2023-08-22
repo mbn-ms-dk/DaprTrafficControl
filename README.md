@@ -228,6 +228,9 @@ graph LR
     K --> T[mail-server-secrets.bicep]
 ```
 
+### Deploy to Azure Container Apps using bicep
+
+
 1. login
 ```powershell 
 az login

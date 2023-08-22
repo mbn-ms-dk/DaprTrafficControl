@@ -1,4 +1,3 @@
-
 targetScope = 'resourceGroup'
 
 // ------------------
@@ -33,7 +32,7 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' exis
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

@@ -51,11 +51,6 @@ param daprAddonHA bool = false
 @description('Then log analytics workspace ID')
 param workspaceName string = ''
 
-@description('The metric labels to be allowed for the kube-state-metrics.')
-param metricLabelsAllowlist string = ''
-@description('The metric annotations to be allowed for the kube-state-metrics.')
-param metricAnnotationsAllowList string = ''
-
 @allowed([
   'none'
   'patch'
@@ -161,8 +156,6 @@ param serviceAccountName string
 
 @description('Aks namespace')
 param aksNameSpace string
-@description('enable Windows node logs')
-param enableWindowsRecordingRules bool = false
 
 @description('Autoscale profile')
 param AutoscaleProfile object = {
@@ -336,13 +329,7 @@ var aksProperties = union({
     dockerBridgeCidr: dockerBridgeCidr
     outboundType: aksOutboundTrafficType
   }
-  // identityProfile: {
-  //   kubeletidentity: {
-  //     resourceId: kubeletIdentity.id
-  //     clientId: kubeletIdentity.properties.clientId
-  //     objectId: kubeletIdentity.properties.principalId
-  //   }
-  // }
+  
   disableLocalAccounts: AksDisableLocalAccounts && enable_aad
   servicePrincipalProfile: { //managed identity
     clientId: 'msi'
@@ -397,7 +384,7 @@ resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-3
   }
 }
 
-resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-06-02-preview' = {
   name: 'aks${uniqueString(resourceGroup().id)}'
   location: location
   tags: tags

@@ -696,7 +696,7 @@ resource Container_working_set_memory_usage_violates_the_configured_threshold_fo
 }
 
 
-resource PV_usage_violates_the_configured_threshold_for_clustername_CI_21 'microsoft.insights/metricAlerts@2018-03-01' = {
+resource PV_usage_violates_the_configured_threshold_for_clustername_CI_21 'Microsoft.Insights/metricAlerts@2018-03-01' = {
   name: 'PV usage violates the configured threshold for ${clusterName} CI-21'
   tags: tags
   location: 'global'
@@ -744,7 +744,7 @@ resource PV_usage_violates_the_configured_threshold_for_clustername_CI_21 'micro
 }
 
 
-resource Daily_law_datacap 'Microsoft.Insights/scheduledQueryRules@2022-06-15' = {
+resource Daily_law_datacap 'Microsoft.Insights/scheduledQueryRules@2023-03-15-preview' = {
   name: 'Daily data cap breached for workspace ${logAnalyticsWorkspaceName} CIQ-1'
   tags: tags
   location: logAnalyticsWorkspaceLocation

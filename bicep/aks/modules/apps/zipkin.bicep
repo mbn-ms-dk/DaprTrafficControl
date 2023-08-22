@@ -64,6 +64,7 @@ resource coreService_zipkin 'core/Service@v1' = {
     ports: [
       {
         port: 9411
+        #disable-next-line BCP036
         targetPort: 9411
         protocol: 'TCP'
         name: '${aksNameSpace}-zipkin'

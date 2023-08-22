@@ -145,6 +145,7 @@ resource coreService_uisim 'core/Service@v1' = {
       {
         name: 'web'
         port: visualsimulationPortNumber
+        #disable-next-line BCP036
         targetPort: visualsimulationPortNumber
       }
     ]
