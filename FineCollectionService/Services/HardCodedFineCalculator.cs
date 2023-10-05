@@ -1,4 +1,5 @@
 ﻿namespace FineCollectionService.Services;
+// This is a hard coded implementation of the fine calculator
 public class HardCodedFineCalculator : IFineCalculator {
     public int CalculateFine(int violationInKMh) {
 

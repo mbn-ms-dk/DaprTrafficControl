@@ -107,7 +107,7 @@ param daprConfigName string
 // ------------------
 //    RESOURCES
 // ------------------
-resource aks 'Microsoft.ContainerService/managedClusters@2023-05-02-preview' existing = {
+resource aks 'Microsoft.ContainerService/managedClusters@2023-06-02-preview' existing = {
   name: clusterName
 }
 
@@ -379,3 +379,5 @@ module finecollectionservice 'apps/finecollectionservice.bicep' = {
     ns
   ]
 }
+
+

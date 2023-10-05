@@ -18,7 +18,7 @@ param containerRegistryName string
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 
@@ -99,11 +99,13 @@ resource coreService_mosquitto 'core/Service@v1' = {
       {
         name: 'mqtt'
         port: mosquittoPortNumber
+        #disable-next-line BCP036
         targetPort: mosquittoPortNumber
       }
       {
         name: 'ws'
         port: 9001
+        #disable-next-line BCP036
         targetPort: 9001
       }
     ]

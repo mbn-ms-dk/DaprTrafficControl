@@ -23,15 +23,15 @@ param aksNameSpace string
 @description('Aks workload identity service account name')
 param serviceAccountName string
 
-// Service Bus
-@description('The name of the service bus namespace.')
-param serviceBusName string
+// // Service Bus
+// @description('The name of the service bus namespace.')
+// param serviceBusName string
 
-@description('The name of the service bus topic.')
-param serviceBusTopicName string
+// @description('The name of the service bus topic.')
+// param serviceBusTopicName string
 
-@description('The AKS service principal id.')
-param aksPrincipalId string
+// @description('The AKS service principal id.')
+// param aksPrincipalId string
 
 @description('Secret Provider Class Name')
 #disable-next-line secure-secrets-in-params //Disabling validation of this linter rule as param does not contain a secret.
@@ -40,14 +40,14 @@ param secretProviderClassName string
 // ------------------
 // RESOURCES
 // ------------------
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = {
-  name: serviceBusName
-}
+// resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2021-11-01' existing = {
+//   name: serviceBusName
+// }
 
-resource serviceBusTopic 'Microsoft.ServiceBus/namespaces/topics@2021-11-01' existing = {
-  name: serviceBusTopicName
-  parent: serviceBusNamespace
-}
+// resource serviceBusTopic 'Microsoft.ServiceBus/namespaces/topics@2021-11-01' existing = {
+//   name: serviceBusTopicName
+//   parent: serviceBusNamespace
+// }
 
 module buildfineCollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
   name: fineCollectionServiceName
@@ -63,7 +63,7 @@ module buildfineCollection 'br/public:deployment-scripts/build-acr:2.0.1' = {
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 
@@ -149,12 +149,12 @@ resource appsDeployment_finecollectionservice 'apps/Deployment@v1' = {
   }
 }
 
-resource fineCollectionService_sb_role_assignment_system 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(resourceGroup().id, fineCollectionServiceName, '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
-  properties: {
-    principalId: aksPrincipalId
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver.
-    principalType: 'ServicePrincipal'
-  }
-  scope: serviceBusTopic
-}
+// resource fineCollectionService_sb_role_assignment_system 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+//   name: guid(resourceGroup().id, fineCollectionServiceName, '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0')
+//   properties: {
+//     principalId: aksPrincipalId
+//     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0') // Azure Service Bus Data Receiver.
+//     principalType: 'ServicePrincipal'
+//   }
+//   scope: serviceBusTopic
+// }

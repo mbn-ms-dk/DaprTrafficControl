@@ -12,7 +12,7 @@ param mailPortNumber int
 param aksNameSpace string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 
@@ -81,12 +81,14 @@ resource coreService_mailserver 'core/Service@v1' = {
       {
         name: 'smtp'
         port: 25
+        #disable-next-line BCP036
         targetPort: mailPortNumber
         protocol: 'TCP'
       }
       {
         name: 'http'
         port: 4000
+        #disable-next-line BCP036        
         targetPort: 1080
         protocol: 'TCP'
       }

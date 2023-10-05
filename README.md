@@ -84,7 +84,7 @@ This project is using [tye](https://github.com/dotnet/tye) to run locally and de
 To run locally [dapr](https://docs.dapr.io/getting-started) is required.
 
 ### install dapr locally
-1. Install [dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) (both for running locally and on Azure Kubernetes)
+1. Install [dapr CLI](https://docs.dapr.io/getting-started/install-dapr-cli/) 
 2. [Initialize](https://docs.dapr.io/getting-started/install-dapr-selfhost/)
 
 ### Run locally
@@ -136,7 +136,7 @@ This project is using Github Actions to deploy
 ```shell
 az ad sp create-for-rbac \
     --name "ghActiondtc" \
-    --scope /subscriptions/edccd614-120e-4738-9be5-e63d2c6b7b10/resourceGroups/$rg \
+    --scope /subscriptions/subscriptionId/resourceGroups/$rg \
     --role Contributor \
     --sdk-auth
 ```
@@ -227,6 +227,9 @@ graph LR
     F --> K
     K --> T[mail-server-secrets.bicep]
 ```
+
+### Deploy to Azure Container Apps using bicep
+
 
 1. login
 ```powershell 

@@ -165,7 +165,7 @@ module aks 'modules/aks.bicep' = {
     enable_aad: true
     enableAzureRBAC: true
     agentCount: 1
-    agentCountMax: 3
+    agentCountMax: 2
     enableCollectionRules: enableCollectionRules
     //enable workload identity
     workloadIdentity: true
@@ -186,6 +186,20 @@ module aks 'modules/aks.bicep' = {
     aks_law
     cosmosDb
   ] 
+}
+
+module servicebus_rbac 'modules/service-bus-rbac.bicep' = {
+  name: 'servicebus_rbac-${uniqueString(resourceGroup().id)}'
+  params: {
+    finecollectionServiceName: finecollectionServiceName
+    serviceBusName: serviceBusName
+    serviceBusTopicName: serviceBusTopicName
+    aksPrincipalId: aks.outputs.appIdentityClientId
+  }
+  dependsOn: [
+    aks
+    serviceBus
+  ]
 }
 
 resource amw 'Microsoft.Monitor/accounts@2023-04-03' = if(enableMonitoring) {
