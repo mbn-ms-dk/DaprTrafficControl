@@ -8,7 +8,7 @@ spec:
   parameters:
     usePodIdentity: "false"
     useVMManagedIdentity: "false"
-    clientID: '<workload-client'id>' 
+    clientID: '<workload-clientid>' 
     keyvaultName: "<Keyvault name>"
     cloudName: ""
     tenantId: "<tenant id>"

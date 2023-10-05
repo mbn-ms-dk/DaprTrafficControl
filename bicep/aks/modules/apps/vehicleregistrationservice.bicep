@@ -41,7 +41,7 @@ module buildvehicleRegistration 'br/public:deployment-scripts/build-acr:2.0.1' =
 }
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

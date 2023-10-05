@@ -168,7 +168,7 @@ resource appsDeployment_trafficcontrolservice 'apps/Deployment@v1' = {
   }
 }
 
-// Assign cosmosdb account read/write access to aca system assigned identity
+// Assign cosmosdb account read/write access to aks system assigned identity
 resource trafficcontrolService_cosmosdb_role_assignment_system 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2022-08-15' = {
   name: guid(subscription().id, trafficcontrolServiceName, '00000000-0000-0000-0000-000000000002')
   parent: cosmosDbAccount

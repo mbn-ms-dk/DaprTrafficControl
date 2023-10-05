@@ -72,6 +72,12 @@ param mosquittoPortNumber int
 @description('The target and dapr port for the email service.')
 param mailPortNumber int
 
+// @description('The name of the service for the zipkin service. The name is use as Dapr App ID.')
+// param zipkinServiceName string
+
+// @description('The target and dapr port for the zipkin service.')
+// param zipkinPortNumber int
+
 @description('The dapr port for the finecollection service.')
 param finecollectionPortNumber int
 
@@ -111,7 +117,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing
   name: applicationInsightsName
 }
 
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' existing = {
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-08-01-preview' existing = {
   name: containerRegistryName
 }
 
@@ -149,6 +155,17 @@ module mailService 'container-apps/mail.bicep' = {
     mailPortNumber: mailPortNumber
   }
 }
+
+// module zipkinService 'container-apps/zipkin.bicep' = {
+//   name: 'zipkinService-${uniqueString(resourceGroup().id)}'
+//   params: {
+//     zipkinServiceName: zipkinServiceName
+//     location: location
+//     tags: tags
+//     containerAppsEnvironmentId: containerAppsEnvironment.id
+//     zipkinPortNumber: zipkinPortNumber
+//   }
+// }
 
 module mosquittoService 'container-apps/mosquitto.bicep' = if(useMosquitto) {
   name: 'mosquittoService-${uniqueString(resourceGroup().id)}'
@@ -255,6 +272,9 @@ module vehicleregistrationService 'container-apps/vehicleregistration-service.bi
 
 @description('The name of the container app for the mail service.')
 output mailServiceContainerAppName string = mailService.outputs.mailServiceContainerAppName
+
+// @description('The name of the container app for the zipkin service.')
+// output zipkinServiceContainerAppName string = zipkinService.outputs.zipkinServiceContainerAppName
 
 @description('The name of the container app for the mosquitto service.')
 output mosquittoServiceContainerAppName string = useMosquitto ? mosquittoService.outputs.mosquittoServiceContainerAppName : 'notDeployed'

@@ -1,5 +1,4 @@
 @secure()
-
 param kubeConfig string
 
 @description('Aks namespace to deploy the zipkin service')

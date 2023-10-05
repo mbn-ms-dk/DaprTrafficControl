@@ -13,21 +13,21 @@ param tags object = {}
 @description('The resource Id of the container apps environment.')
 param containerAppsEnvironmentId string
 
-@description('The name of the service for the mail service. The name is use as Dapr App ID.')
-param mailServiceName string
+@description('The name of the service for the zipkin service. The name is use as Dapr App ID.')
+param zipkinServiceName string
 
-@description('The target and dapr port for the mail service.')
-param mailPortNumber int
+@description('The target and dapr port for the zipkin service.')
+param zipkinPortNumber int
 
 
 // ------------------
 // RESOURCES
 // ------------------
 
-resource mailService 'Microsoft.App/containerApps@2023-05-02-preview' = {
-  name: mailServiceName
+resource zipkinService 'Microsoft.App/containerApps@2023-05-02-preview' = {
+  name: zipkinServiceName
   location: location
-  tags: union(tags, { containerApp: mailServiceName })
+  tags: union(tags, { containerApp: zipkinServiceName })
   identity: {
     type: 'SystemAssigned'
     }
@@ -37,13 +37,13 @@ resource mailService 'Microsoft.App/containerApps@2023-05-02-preview' = {
       activeRevisionsMode: 'single'
       ingress: {
         external: false
-        targetPort: mailPortNumber
+        targetPort: zipkinPortNumber
       }
       dapr: {
         enabled: true
-        appId: mailServiceName
+        appId: zipkinServiceName
         appProtocol: 'http'
-        appPort: mailPortNumber
+        appPort: zipkinPortNumber
         logLevel: 'info'
         enableApiLogging: true
       }
@@ -51,7 +51,7 @@ resource mailService 'Microsoft.App/containerApps@2023-05-02-preview' = {
     template: {
       containers: [
         {
-          name: mailServiceName
+          name: zipkinServiceName
           image: 'maildev/maildev:2.0.5'
           resources: {
             cpu: json('0.25')
@@ -72,4 +72,4 @@ resource mailService 'Microsoft.App/containerApps@2023-05-02-preview' = {
 // ------------------
 
 @description('The name of the container app for the frontend web app service.')
-output mailServiceContainerAppName string = mailService.name
+output zipkinServiceContainerAppName string = zipkinService.name

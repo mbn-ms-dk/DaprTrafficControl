@@ -15,7 +15,7 @@ param applicationInsightsSecretName string
 param serviceAccountName string
 
 import 'kubernetes@1.0.0' with {
-  namespace: 'default'
+  namespace: aksNameSpace
   kubeConfig: kubeConfig
 }
 

@@ -188,6 +188,20 @@ module aks 'modules/aks.bicep' = {
   ] 
 }
 
+module servicebus_rbac 'modules/service-bus-rbac.bicep' = {
+  name: 'servicebus_rbac-${uniqueString(resourceGroup().id)}'
+  params: {
+    finecollectionServiceName: finecollectionServiceName
+    serviceBusName: serviceBusName
+    serviceBusTopicName: serviceBusTopicName
+    aksPrincipalId: aks.outputs.appIdentityClientId
+  }
+  dependsOn: [
+    aks
+    serviceBus
+  ]
+}
+
 resource amw 'Microsoft.Monitor/accounts@2023-04-03' = if(enableMonitoring) {
   name: 'amw-${uniqueString(resourceGroup().id)}'
   location: location

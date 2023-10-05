@@ -197,9 +197,6 @@ param SystemPoolCustomPreset object = {}
 @description('Enable the Azure Policy addon')
 param azurepolicy string = 'Audit'
 
-@description('Enable collection rules')
-param enableCollectionRules bool
-
 // ------------------
 //    EXISTING RESOURCES
 // ------------------
