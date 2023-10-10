@@ -155,7 +155,7 @@ Save the output as follows:
 | cluster_name | The name of your cluster |
 
 
-### Install grafana optional 
+### Install grafana (optional) 
 Navigate to K8s/observability/grafana folder. (TODO: Use managed grafana)
 
 ```shell
