@@ -13,7 +13,7 @@
     <PackageReference Include="Dapr.Extensions.Configuration" Version="1.12.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="RandomNameGeneratorLibrary" Version="1.2.2" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
   </ItemGroup>
 
 </Project>
